@@ -22,6 +22,7 @@ def args_parser_train():
 	parser.add_argument('--optimizer', type=str, default='sgd', help='optimizer [sgd, adam]')
 	parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
 	parser.add_argument('--model-saving-path',  type=str, default = ".",help='path to directory where you want to save trained models (default = .)')  
+	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	return parser
 
 def args_parser_iterprune():
@@ -38,6 +39,7 @@ def args_parser_iterprune():
 	parser.add_argument('--init-path',type=str, required=True, help='path to winning initialization model (default = .)')  
 	parser.add_argument('--model-saving-path', type=str, default = ".", help='path to directory where you want to save trained models (default = .)')
 	parser.add_argument('--random', type=str,  default = "false", help='to train random ticket (default = false)')
+	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	return parser
 
 
@@ -50,6 +52,7 @@ def args_parser_test():
 	parser.add_argument('--dataset',type=str, required=True, help='dataset [cifar10, cifar100, svhn, fashionmnist]')
 	parser.add_argument('--batch-size', type=int, default=512, help='input batch size for training (default: 512)')
 	parser.add_argument('--model_path',type=str, required=True, help='path to the model for finding test accuracy')
+	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	return parser
 
 def load_dataset(dataset, batch_size = 512, is_train_split=True):
