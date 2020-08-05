@@ -99,7 +99,7 @@ if __name__ == '__main__':
 	random.seed(args.seed)
 
 	#Uses GPU is available
-	device = torch.device("cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
+	device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
 	print(f'Using {device} device.')
 
 	#Loads dataset
