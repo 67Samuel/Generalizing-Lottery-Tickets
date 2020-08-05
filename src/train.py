@@ -83,6 +83,8 @@ def train(model, batch_size, dataloader, architecture, optimizer_type, device, m
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
 			except FileNotFoundError:
 				print(models_dir + " path not found")
+				
+		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
 	print("Finished Training!")
 
