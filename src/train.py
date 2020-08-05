@@ -3,6 +3,7 @@ import torch
 import random
 import torchvision
 import torch.optim as optim
+import wandb
 
 
 def initialize_xavier_normal(layer):
@@ -57,6 +58,8 @@ def train(model, dataloader, architecture, optimizer_type, device, models_dir):
 
 	if architecture == "vgg19":
 		model.apply(initialize_xavier_normal)
+		
+	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Train {args.architecture}", config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
 
@@ -71,6 +74,7 @@ def train(model, dataloader, architecture, optimizer_type, device, models_dir):
 			optimizer.zero_grad()
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
+			wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
 
