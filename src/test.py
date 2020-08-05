@@ -3,9 +3,10 @@ import torch
 import random
 import torchvision
 import torch.optim as optim
+import wandb
 
 
-def test(model, dataloader, device, model_path):
+def test(model, architecture, dataloader, device, model_path):
 	"""
 	Function to print the fraction of pruned weights and test accuracy of a model
 
@@ -19,6 +20,7 @@ def test(model, dataloader, device, model_path):
 	Returns:
 	None
 	"""
+	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Test {architecture}")
 	cpt = torch.load(model_path)
 	model.load_state_dict(cpt['model_state_dict'])
 	model.eval()
@@ -43,6 +45,7 @@ def test(model, dataloader, device, model_path):
 			total += labels.size(0)
 			correct += (predicted == labels).sum().item()
 	print(f"Accuracy: {100 * correct / total}")
+	wandb.log({'accuracy':100 * correct / total})
 
 if __name__ == '__main__':
 
@@ -68,4 +71,4 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	test(model, dataloader, device, args.model_path)
+	test(model, args.architecture, dataloader, device, args.model_path)
