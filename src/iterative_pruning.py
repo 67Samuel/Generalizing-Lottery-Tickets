@@ -101,6 +101,9 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 	elif architecture == "resnet50":
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
+	elif architecture == "alexnet":
+		num_epochs = 300
+		lr_anneal_epochs = [50, 100]
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
@@ -109,7 +112,10 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 	weight_fractions = get_weight_fractions()
 	
 	if optimizer_type == 'sgd':
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+		if architecture == "alexnet":
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+		else:
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
 		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
@@ -119,7 +125,10 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 		wandb.log({'prune iteration':pruning_iter})
 		print(f"Running pruning iteration {pruning_iter}")
 		if optimizer_type == 'sgd':
-			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+			if architecture == "alexnet":
+				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
+			else:
+				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif optimizer_type == 'adam':
 			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 		else:
