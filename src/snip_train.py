@@ -143,18 +143,24 @@ def train(model, batch_size, img_size, dataloader, architecture, optimizer_type,
 	elif architecture == "resnet50":
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
+	elif architecture == "alexnet":
+		num_epochs = 300
+		lr_anneal_epochs = [50, 100]
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
 	if optimizer_type == 'sgd':
-		optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+		if architecture == "alexnet":
+			optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
+		else:
+			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 	elif optimizer_type == 'adam':
 		optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 	else:
 		raise ValueError(optimizer_type + " optimizer not supported")
 
-	if architecture == "vgg19":
+	if (architecture == "vgg19") or (architecture == "alexnet"):
 		model.apply(initialize_xavier_normal)
 		
 	wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Train {architecture}", config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
