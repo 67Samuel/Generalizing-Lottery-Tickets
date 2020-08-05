@@ -76,7 +76,7 @@ def train(model, dataloader, architecture, optimizer_type, device, models_dir):
 
 		if epoch <=5 or epoch%(num_epochs/10) == 0:
 			try:
-				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{epoch}")
+				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
 			except FileNotFoundError:
 				print(models_dir + " path not found")
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
