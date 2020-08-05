@@ -65,6 +65,7 @@ def train(model, batch_size, dataloader, architecture, optimizer_type, device, m
 
 	print(f"Started Training...")
 	for epoch in range(1, num_epochs+1):
+		wandb.log({'epochs':epoch})
 		if epoch in lr_anneal_epochs:
 			optimizer.param_groups[0]['lr'] /= 10
 
