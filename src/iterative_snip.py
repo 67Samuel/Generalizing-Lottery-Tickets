@@ -231,7 +231,7 @@ if __name__ == '__main__':
 	dataloader = load_dataset(args.target_dataset, args.batch_size, True)
 
 	#Loads model
-	if args.architecture = "test_resnet50":
+	if args.architecture == "test_resnet50":
 		model = load_model("resnet50", num_classes_target)
 	else:
 		model = load_model(args.architecture, num_classes_target)
