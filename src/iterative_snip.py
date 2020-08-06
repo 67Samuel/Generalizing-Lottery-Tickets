@@ -133,7 +133,7 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
 		num_epochs = 300
-		lr_anneal_epochs = [100, 150, 200, 250]
+		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
