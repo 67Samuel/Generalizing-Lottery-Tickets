@@ -216,6 +216,7 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 							layer_index += 1
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
+	print("Please delete the saved model state dicts from iter 16 and below to free up space")
 
 
 if __name__ == '__main__':
