@@ -24,7 +24,7 @@ def args_parser_train():
 	parser.add_argument('--model-saving-path',  type=str, default = ".",help='path to directory where you want to save trained models (default = .)')  
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	parser.add_argument('--snip', default=50.0, type=float, help='snip percentage, 80 means 80% snip (default: 50.0)')
-	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[80, 140, 180], help='3 points to decrease lr for alexnet at (default: [80, 140, 180])')
+	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
 	return parser
 
 def args_parser_iterprune():
@@ -42,7 +42,7 @@ def args_parser_iterprune():
 	parser.add_argument('--model-saving-path', type=str, default = ".", help='path to directory where you want to save trained models (default = .)')
 	parser.add_argument('--random', type=str,  default = "false", help='to train random ticket (default = false)')
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
-	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[80, 140, 180], help='3 points to decrease lr for alexnet at (default: [80, 140, 180])')
+	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
 	return parser
 
 
