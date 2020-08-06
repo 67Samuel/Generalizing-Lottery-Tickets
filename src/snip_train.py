@@ -221,13 +221,13 @@ if __name__ == '__main__':
 		num_classes = 100
 	else:
 		raise ValueError(args.dataset + " dataset not supported")
-    
-  if args.dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
-    img_size = 32
-  elif args.dataset == 'fashionmnist':
-    img_size = 28
-  else:
-    raise ValueError(args.dataset + " dataset not supported")
+		
+	if args.dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
+		img_size = 32
+	elif args.dataset == 'fashionmnist':
+		img_size = 28
+	else:
+		raise ValueError(args.dataset + " dataset not supported")
 
 	#Loads model
 	model = load_model(args.architecture, num_classes)
