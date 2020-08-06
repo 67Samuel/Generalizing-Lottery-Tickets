@@ -171,7 +171,7 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 			
 		model.to(device)
 			
-		snip_factor = (100*(0.8**(pruning_iter+1)))/100
+		snip_factor = round((100*(0.8**(pruning_iter+1)))/100, 5)
 		print(f"Pruning 20% of latest model weights with SNIP, snip factor: {snip_factor}...")
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
 		apply_prune_mask(model, keep_masks)
