@@ -193,7 +193,7 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 				loss = criterion(outputs, labels)
 				wandb.log({'prune loss':loss})
 				loss.backward()
-				optimizer.step()
+                optimizer.step()
 				
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 
