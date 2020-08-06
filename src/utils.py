@@ -643,47 +643,44 @@ def load_model(architecture, num_classes):
 		return resnet50(pretrained=False)
 	
 	elif architecture == "alexnet":
-
-        class AlexNet(nn.Module):
-            def __init__(self, in_channels=3, init_padding=(2, 2), classes=200):
-                super(AlexNet, self).__init__()
-                self.features = nn.Sequential(
-                    nn.Conv2d(in_channels, 64, kernel_size=11, stride=4, padding=init_padding),
-                    nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                    nn.Conv2d(64, 192, kernel_size=5, padding=2),
-                    nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                    nn.Conv2d(192, 384, kernel_size=3, padding=1),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(384, 256, kernel_size=3, padding=1),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(256, 256, kernel_size=3, padding=1),
-                    nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                    )
-                self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
-                self.classifier = nn.Sequential(
-                                      nn.Dropout(),
-                                      nn.Linear(256 * 6 * 6, 4096),
-                                      nn.ReLU(inplace=True),
-                                      nn.Dropout(),
-                                      nn.Linear(4096, 4096),
-                                      nn.ReLU(inplace=True),
-                                      nn.Linear(4096, classes),
-                                      )
-
-            def forward(self, x):
-                x = self.features(x)
-                x = self.avgpool(x)
-                x = x.view(x.size(0), 256 * 6 * 6)
-                x = self.classifier(x)
-                return x
-
-        def createAlexNet(in_channels=3, init_padding=(2, 2), classes=100):
-            return AlexNet(in_channels, init_padding, classes)
-	
-        alexnet = createAlexNet(classes=num_classes)
-        return alexnet
-    else:
-        raise ValueError(architecture + " architecture not supported.")
+                class AlexNet(nn.Module):
+                        def __init__(self, in_channels=3, init_padding=(2, 2), classes=200):
+                                super(AlexNet, self).__init__()
+                                self.features = nn.Sequential(
+                                        nn.Conv2d(in_channels, 64, kernel_size=11, stride=4, padding=init_padding),
+                                        nn.ReLU(inplace=True),
+                                        nn.MaxPool2d(kernel_size=3, stride=2),
+                                        nn.Conv2d(64, 192, kernel_size=5, padding=2),
+                                        nn.ReLU(inplace=True),
+                                        nn.MaxPool2d(kernel_size=3, stride=2),
+                                        nn.Conv2d(192, 384, kernel_size=3, padding=1),
+                                        nn.ReLU(inplace=True),
+                                        nn.Conv2d(384, 256, kernel_size=3, padding=1),
+                                        nn.ReLU(inplace=True),
+                                        nn.Conv2d(256, 256, kernel_size=3, padding=1),
+                                        nn.ReLU(inplace=True),
+                                        nn.MaxPool2d(kernel_size=3, stride=2),
+                                        )
+                                self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
+                                self.classifier = nn.Sequential(
+                                        nn.Dropout(),
+                                        nn.Linear(256 * 6 * 6, 4096),
+                                        nn.ReLU(inplace=True),
+                                        nn.Dropout(),
+                                        nn.Linear(4096, 4096),
+                                        nn.ReLU(inplace=True),
+                                        nn.Linear(4096, classes),
+                                        )
+                        def forward(self, x):
+                                x = self.features(x)
+                                x = self.avgpool(x)
+                                x = x.view(x.size(0), 256 * 6 * 6)
+                                x = self.classifier(x)
+                                return x
+                def createAlexNet(in_channels=3, init_padding=(2, 2), classes=100):
+                        return AlexNet(in_channels, init_padding, classes)
+                
+                alexnet = createAlexNet(classes=num_classes)
+                return alexnet
+        else:
+                raise ValueError(architecture + " architecture not supported.")
