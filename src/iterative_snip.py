@@ -106,6 +106,10 @@ def apply_prune_mask(net, keep_masks):
         # Step 2: Make sure their gradients remain zero
         layer.weight.data[keep_mask == 0.] = 0.
         layer.weight.register_hook(hook_factory(keep_mask)) #hook masks onto respective weights
+	
+def weight_reset(m):
+	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+		m.reset_parameters()
 
 def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes):
 	"""
@@ -174,6 +178,9 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 		snip_factor = round((100*(0.8**(pruning_iter+1)))/100, 5)
 		print(f"Pruning 20% of latest model weights with SNIP, snip factor: {snip_factor}...")
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
+		# Reinit weights
+		model.apply(weight_reset)
+		# Apply mask
 		apply_prune_mask(model, keep_masks)
 
 		for epoch in range(1, num_epochs+1):
