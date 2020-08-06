@@ -181,13 +181,6 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 			for batch_num, data in enumerate(dataloader, 0):
 				inputs, labels = data[0].to(device), data[1].to(device)
 				optimizer.zero_grad()
-				
-				if pruning_iter != 0:
-					layer_index = 0
-					for name, params in model.named_parameters():
-						if "weight" in name:
-							params.data.mul_(masks[layer_index].to(device))
-							layer_index += 1
 
 				outputs = model(inputs)
 				loss = criterion(outputs, labels)
@@ -198,12 +191,6 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 
 			if epoch == num_epochs:
-				if pruning_iter != 0:
-					layer_index = 0
-					for name, params in model.named_parameters():
-						if "weight" in name:
-							params.data.mul_(masks[layer_index].to(device))
-							layer_index += 1
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
 
