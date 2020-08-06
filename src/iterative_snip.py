@@ -243,12 +243,12 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
   
   #Get img size
-  if args.dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
-    img_size = 32
-  elif args.dataset == 'fashionmnist':
-    img_size = 28
-  else:
-    raise ValueError(args.dataset + " dataset not supported")
+	if args.dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
+		img_size = 32
+	elif args.dataset == 'fashionmnist':
+		img_size = 28
+	else:
+		raise ValueError(args.dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
 		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True)
