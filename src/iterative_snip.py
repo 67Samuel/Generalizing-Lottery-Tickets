@@ -134,6 +134,9 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 	elif architecture == "alexnet":
 		num_epochs = 300
 		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
+	elif architecture == "test_resnet50":
+		num_epochs = 3
+		lr_anneal_epochs = []
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
@@ -228,7 +231,10 @@ if __name__ == '__main__':
 	dataloader = load_dataset(args.target_dataset, args.batch_size, True)
 
 	#Loads model
-	model = load_model(args.architecture, num_classes_target)
+	if args.architecture = "test_resnet50":
+		model = load_model("resnet50", num_classes_target)
+	else:
+		model = load_model(args.architecture, num_classes_target)
   
   #Get img size
 	if args.target_dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
