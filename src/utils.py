@@ -682,5 +682,6 @@ def load_model(architecture, num_classes):
                 
                 alexnet = createAlexNet(classes=num_classes)
                 return alexnet
+        
         else:
                 raise ValueError(architecture + " architecture not supported.")
