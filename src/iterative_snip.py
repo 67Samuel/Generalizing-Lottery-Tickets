@@ -166,12 +166,12 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 			cpt = torch.load(models_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
 			
+		model.to(device)
+			
 		print(f"Pruning 20% of latest model weights with SNIP...")
 		snip_factor = 0.8
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
 		apply_prune_mask(model, keep_masks)
-
-		model.to(device)
 
 		for epoch in range(1, num_epochs+1):
 			wandb.log({'epochs':epoch})
