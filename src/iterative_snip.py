@@ -107,7 +107,7 @@ def apply_prune_mask(net, keep_masks):
         layer.weight.data[keep_mask == 0.] = 0.
         layer.weight.register_hook(hook_factory(keep_mask)) #hook masks onto respective weights
 
-def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes):
+def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -141,13 +141,13 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
 		else:
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'epochs':num_epochs})
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
 		wandb.log({'prune iteration':pruning_iter})
@@ -166,32 +166,10 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 			cpt = torch.load(models_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
       
-    print(f"Pruning 20% of latest model weights with SNIP...")
-    snip_factor = 0.8
-    keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
-    apply_prune_mask(model, keep_masks)
-
-		if random == 'false':
-			if is_equal_classes:
-				cpt = torch.load(init_path)
-				model.load_state_dict(cpt['model_state_dict'])
-			else:
-				cpt = torch.load(init_path)
-				new_dict = model.state_dict()
-				for key in new_dict.keys():
-					if "classifier" not in key and "fc" not in key:
-						new_dict[key] = cpt['model_state_dict'][key]
-						model.load_state_dict(new_dict)
-					else:
-						for m in model.modules():
-							if isinstance(model, nn.Conv2d):
-								if architecture == 'vgg19':
-									nn.init.xavier_normal_(m.weight)
-									layer.bias.data.fill_(0)
-								elif architecture == 'resnet50':
-									nn.init.kaiming_normal_(m.weight)
-								else:
-									raise ValueError(architecture + " architecture not supported")
+        print(f"Pruning 20% of latest model weights with SNIP...")
+        snip_factor = 0.8
+        keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
+        apply_prune_mask(model, keep_masks)
 
 		model.to(device)
 
@@ -273,6 +251,6 @@ if __name__ == '__main__':
     raise ValueError(args.dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True)
+		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True)
 	else:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False)
+		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False)
