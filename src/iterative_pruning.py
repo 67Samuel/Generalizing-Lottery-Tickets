@@ -113,7 +113,7 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 	
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0001, 'epochs':num_epochs})
 		else:
 			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
@@ -126,7 +126,7 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 		print(f"Running pruning iteration {pruning_iter}")
 		if optimizer_type == 'sgd':
 			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
+				optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.0005)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif optimizer_type == 'adam':
