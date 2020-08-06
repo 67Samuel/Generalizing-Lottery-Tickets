@@ -165,11 +165,11 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 		if pruning_iter != 0:
 			cpt = torch.load(models_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
-      
-        print(f"Pruning 20% of latest model weights with SNIP...")
-        snip_factor = 0.8
-        keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
-        apply_prune_mask(model, keep_masks)
+			
+		print(f"Pruning 20% of latest model weights with SNIP...")
+		snip_factor = 0.8
+		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
+		apply_prune_mask(model, keep_masks)
 
 		model.to(device)
 
