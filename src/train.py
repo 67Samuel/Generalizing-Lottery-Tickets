@@ -85,7 +85,11 @@ def train(model, batch_size, dataloader, architecture, optimizer_type, device, m
 			loss.backward()
 			optimizer.step()
 
-		if epoch <=5 or epoch%(num_epochs/10) == 0:
+		if architecture == "resnet50":
+			start_saving = 50
+		elif architecture == "vgg19":
+			start_saving = 80
+		if (epoch >=start_saving) and (epoch%(num_epochs/10) == 0):
 			try:
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
 			except FileNotFoundError:
