@@ -23,6 +23,7 @@ def args_parser_train():
 	parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
 	parser.add_argument('--model-saving-path',  type=str, default = ".",help='path to directory where you want to save trained models (default = .)')  
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
+	parser.add_argument('--snip', default=50.0, type=float, help='snip percentage, 80 means 80% snip (default: 50.0)')
 	return parser
 
 def args_parser_iterprune():
