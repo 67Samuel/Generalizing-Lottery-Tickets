@@ -166,11 +166,11 @@ def train(model, batch_size, img_size, dataloader, architecture, optimizer_type,
 	wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Train {architecture}", config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
-  
-  	print(f"Pruning {args.snip}% of weights with SNIP...")
-  	snip_factor = (100 - args.snip)/100
-  	keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
-  	apply_prune_mask(model, keep_masks)
+	
+	print(f"Pruning {args.snip}% of weights with SNIP...")
+	snip_factor = (100 - args.snip)/100
+	keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
+	apply_prune_mask(model, keep_masks)
 
 	print(f"Started Training...")
 	for epoch in range(1, num_epochs+1):
