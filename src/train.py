@@ -47,7 +47,7 @@ def train(model, batch_size, dataloader, architecture, optimizer_type, device, m
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
 		num_epochs = 300
-		lr_anneal_epochs = [50, 100]
+		lr_anneal_epochs = [100, 150, 200, 250]
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
