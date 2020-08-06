@@ -190,9 +190,10 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 				
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 
-			if epoch == num_epochs:
+			if (epoch == num_epochs):
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
+	print("Please delete the saved model state dicts from iter 16 and below to free up space")
 
 
 if __name__ == '__main__':
