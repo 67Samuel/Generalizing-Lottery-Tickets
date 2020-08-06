@@ -152,7 +152,7 @@ def train(model, batch_size, img_size, dataloader, architecture, optimizer_type,
 	criterion = nn.CrossEntropyLoss().cuda()
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
+			optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.0005)
 		else:
 			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 	elif optimizer_type == 'adam':
