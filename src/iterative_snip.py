@@ -148,7 +148,7 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0001, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
 		else:
 			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
