@@ -111,7 +111,7 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit):
+def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -148,13 +148,13 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
 		else:
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=f"Iter Prune {architecture}", config={'batch size':args.batch_size, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
 		wandb.log({'prune iteration':pruning_iter})
@@ -254,6 +254,6 @@ if __name__ == '__main__':
 		raise ValueError(args.target_dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit)
 	else:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit)
