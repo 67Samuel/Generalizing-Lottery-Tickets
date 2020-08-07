@@ -126,7 +126,7 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 		print(f"Running pruning iteration {pruning_iter}")
 		if optimizer_type == 'sgd':
 			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
+				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif optimizer_type == 'adam':
