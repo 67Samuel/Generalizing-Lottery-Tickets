@@ -145,7 +145,9 @@ def train(model, run_name, batch_size, img_size, dataloader, architecture, optim
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
 		num_epochs = alexnet_epochs
-		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
+		lr_anneal_epochs=[]
+		for ms in args.milestone:
+			lr_anneal_epochs.append(ms)
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
