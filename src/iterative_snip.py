@@ -111,7 +111,7 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes):
+def prune_iteratively(model, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -179,7 +179,8 @@ def prune_iteratively(model, batch_size, img_size, dataloader, architecture, opt
 		print(f"Pruning 20% of latest model weights with SNIP, snip factor: {snip_factor}...")
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
 		# Reinit weights
-		model.apply(weight_reset)
+		if reinit:
+			model.apply(weight_reset)
 		# Apply mask
 		apply_prune_mask(model, keep_masks)
 
@@ -253,6 +254,6 @@ if __name__ == '__main__':
 		raise ValueError(args.target_dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True)
+		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit)
 	else:
-		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False)
+		prune_iteratively(model, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit)
