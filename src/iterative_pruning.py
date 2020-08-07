@@ -75,7 +75,7 @@ def permute_masks(old_masks):
 	return new_masks
 
 
-def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes, alexnet_epochs):
+def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes, alexnet_epochs, alexnet_lr):
 	"""
 	Performs iterative pruning
 
@@ -103,7 +103,9 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
 		num_epochs = alexnet_epochs
-		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
+		lr_anneal_epochs=[]
+		for ms in args.milestone:
+			lr_anneal_epochs.append(ms)
 	else:
 		raise ValueError(architecture + " architecture not supported")
 
@@ -113,7 +115,7 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 	
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':alexnet_lr, 'epochs':num_epochs})
 		else:
 			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
@@ -126,7 +128,7 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 		print(f"Running pruning iteration {pruning_iter}")
 		if optimizer_type == 'sgd':
 			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
+				optimizer = optim.SGD(model.parameters(), lr=alexnet_lr, momentum=0.9, weight_decay=0.004)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif optimizer_type == 'adam':
@@ -254,7 +256,7 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True, args.alexnet_epochs)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True, args.alexnet_epochs, args.alexnet_lr)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False, args.alexnet_epochs)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False, args.alexnet_epochs, args.alexnet_lr)
 
