@@ -22,7 +22,7 @@ def initialize_xavier_normal(layer):
 		torch.nn.init.xavier_normal_(layer.weight)
 		layer.bias.data.fill_(0)
 
-def train(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_dir):
+def train(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_dir, alexnet_epochs):
 	"""
 	Function to train the network 
 
@@ -46,7 +46,7 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
-		num_epochs = 300
+		num_epochs = alexnet_epochs
 		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
 	else:
 		raise ValueError(architecture + " architecture not supported")
@@ -128,6 +128,6 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	train(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path)
+	train(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.alexnet_epochs)
 
 
