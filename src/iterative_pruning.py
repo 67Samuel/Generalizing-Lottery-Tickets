@@ -75,7 +75,7 @@ def permute_masks(old_masks):
 	return new_masks
 
 
-def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes):
+def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes, alexnet_epochs):
 	"""
 	Performs iterative pruning
 
@@ -102,7 +102,7 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
-		num_epochs = 300
+		num_epochs = alexnet_epochs
 		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
 	else:
 		raise ValueError(architecture + " architecture not supported")
@@ -254,7 +254,7 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True, args.alexnet_epochs)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False, args.alexnet_epochs)
 
