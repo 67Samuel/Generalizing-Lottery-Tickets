@@ -192,7 +192,7 @@ def train(model, run_name, batch_size, img_size, dataloader, architecture, optim
 		#	start_saving = 50
 		#elif architecture == "vgg19":
 		#	start_saving = 80
-		if loss < 1:
+		if loss < 3:
 			if (epoch%(num_epochs/10) == 0):
 				try:
 					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
