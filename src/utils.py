@@ -43,6 +43,7 @@ def args_parser_iterprune():
 	parser.add_argument('--random', type=str,  default = "false", help='to train random ticket (default = false)')
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
+	parser.add_argument('--reinit', action='store_true', default=False, help='reinitialize the model weights and biases after every iteration (default: False)')
 	return parser
 
 
