@@ -25,6 +25,7 @@ def args_parser_train():
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	parser.add_argument('--snip', default=50.0, type=float, help='snip percentage, 80 means 80% snip (default: 50.0)')
 	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
+	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
 	return parser
 
 def args_parser_iterprune():
@@ -44,6 +45,7 @@ def args_parser_iterprune():
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
 	parser.add_argument('--reinit', action='store_true', default=False, help='reinitialize the model weights and biases after every iteration (default: False)')
+	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
 	return parser
 
 
@@ -57,6 +59,7 @@ def args_parser_test():
 	parser.add_argument('--batch-size', type=int, default=512, help='input batch size for training (default: 512)')
 	parser.add_argument('--model_path',type=str, required=True, help='path to the model for finding test accuracy')
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
+	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
 	return parser
 
 def load_dataset(dataset, batch_size = 512, is_train_split=True):
