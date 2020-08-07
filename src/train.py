@@ -126,6 +126,6 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	train(model, run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path)
+	train(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path)
 
 
