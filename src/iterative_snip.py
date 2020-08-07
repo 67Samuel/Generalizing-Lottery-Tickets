@@ -111,7 +111,7 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit, alexnet_epochs):
+def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit, alexnet_epochs, alexnet_lr):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -137,7 +137,9 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 		lr_anneal_epochs = [50, 65, 80]
 	elif architecture == "alexnet":
 		num_epochs = alexnet_epochs
-		lr_anneal_epochs = [args.milestone[0], args.milestone[1], args.milestone[2], args.milestone[3]]
+		lr_anneal_epochs=[]
+		for ms in args.milestone:
+			lr_anneal_epochs.append(ms)
 	elif architecture == "test_resnet50":
 		num_epochs = 3
 		lr_anneal_epochs = []
@@ -148,7 +150,7 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':alexnet_lr, 'epochs':num_epochs})
 		else:
 			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
@@ -161,7 +163,7 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 		print(f"Running pruning iteration {pruning_iter}")
 		if optimizer_type == 'sgd':
 			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.004)
+				optimizer = optim.SGD(model.parameters(), lr=alexnet_lr, momentum=0.9, weight_decay=0.004)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif optimizer_type == 'adam':
@@ -254,6 +256,6 @@ if __name__ == '__main__':
 		raise ValueError(args.target_dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit, args.alexnet_epochs)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit, args.alexnet_epochs, args.alexnet_lr)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit, args.alexnet_epochs)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit, args.alexnet_epochs, args.alexnet_lr)
