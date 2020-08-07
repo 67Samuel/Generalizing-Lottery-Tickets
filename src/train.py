@@ -85,17 +85,18 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 			loss.backward()
 			optimizer.step()
 
-		if architecture == "resnet50":
-			start_saving = 50
-		elif architecture == "vgg19":
-			start_saving = 80
-		elif architecture == "alexnet":
-			start_saving = 250
-		if (epoch >=start_saving) and (epoch%(num_epochs/10) == 0):
-			try:
-				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
-			except FileNotFoundError:
-				print(models_dir + " path not found")
+		if loss < 1:
+			#if architecture == "resnet50":
+			#	start_saving = 50
+			#elif architecture == "vgg19":
+			#	start_saving = 80
+			#elif architecture == "alexnet":
+			#	start_saving = 250
+			if (epoch%(num_epochs/10) == 0):
+				try:
+					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
+				except FileNotFoundError:
+					print(models_dir + " path not found")
 				
 		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
