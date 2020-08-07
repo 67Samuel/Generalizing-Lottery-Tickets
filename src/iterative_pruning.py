@@ -75,7 +75,7 @@ def permute_masks(old_masks):
 	return new_masks
 
 
-def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes):
+def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes):
 	"""
 	Performs iterative pruning
 
@@ -113,13 +113,13 @@ def prune_iteratively(model, batch_size, dataloader, architecture, optimizer_typ
 	
 	if optimizer_type == 'sgd':
 		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
 		else:
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
 	elif optimizer_type == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Prune {architecture}", config={'batch size':args.batch_size, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
 		wandb.log({'prune iteration':pruning_iter})
@@ -254,7 +254,7 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True)
 	else:
-		prune_iteratively(model, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False)
+		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False)
 
