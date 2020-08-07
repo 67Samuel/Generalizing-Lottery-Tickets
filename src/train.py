@@ -22,7 +22,7 @@ def initialize_xavier_normal(layer):
 		torch.nn.init.xavier_normal_(layer.weight)
 		layer.bias.data.fill_(0)
 
-def train(model, batch_size, dataloader, architecture, optimizer_type, device, models_dir):
+def train(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_dir):
 	"""
 	Function to train the network 
 
@@ -65,7 +65,7 @@ def train(model, batch_size, dataloader, architecture, optimizer_type, device, m
 	if (architecture == "vgg19") or (architecture == "alexnet"):
 		model.apply(initialize_xavier_normal)
 		
-	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=f"Train {architecture}", config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
+	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
 
@@ -126,6 +126,6 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	train(model, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path)
+	train(model, run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path)
 
 
