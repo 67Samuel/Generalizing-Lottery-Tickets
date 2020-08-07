@@ -85,7 +85,7 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 			loss.backward()
 			optimizer.step()
 
-		if loss < 1:
+		if loss < 0.3:
 			#if architecture == "resnet50":
 			#	start_saving = 50
 			#elif architecture == "vgg19":
