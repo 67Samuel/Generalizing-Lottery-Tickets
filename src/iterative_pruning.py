@@ -174,12 +174,12 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 									raise ValueError(args.architecture + " architecture not supported")
 									
 		for cycle in range(args.cycle_epoch):
-			if args.optimizer_type == 'sgd':
+			if args.optimizer == 'sgd':
 				if args.architecture == "alexnet":
 					optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
 				else:
 					optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-			elif args.optimizer_type == 'adam':
+			elif args.optimizer == 'adam':
 				optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 			else:
 				raise ValueError(args.optimizer_type + " optimizer not supported")
