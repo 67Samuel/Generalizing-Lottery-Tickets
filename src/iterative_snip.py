@@ -111,7 +111,7 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit, alexnet_epochs, alexnet_lr):
+def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit, alexnet_epochs, alexnet_lr, cycle_epoch=10000000):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -201,6 +201,17 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 				loss.backward()
 				optimizer.step()
 				
+			if epoch == cycle_epoch:
+				if optimizer_type == 'sgd':
+					if architecture == "alexnet":
+						optimizer.param_groups[0]['lr'] = alexnet_lr
+					else:
+						optimizer.param_groups[0]['lr'] = 0.1
+				elif optimizer_type == 'adam':
+					optimizer.param_groups[0]['lr'] = 0.0003
+				else:
+					print('cycle not supported for this optimizer type')
+				
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 
 			if epoch == num_epochs:
@@ -256,6 +267,6 @@ if __name__ == '__main__':
 		raise ValueError(args.target_dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit, args.alexnet_epochs, args.alexnet_lr)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit, args.alexnet_epochs, args.alexnet_lr, args.cycle_epoch)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit, args.alexnet_epochs, args.alexnet_lr)
+		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit, args.alexnet_epochs, args.alexnet_lr, args.cycle_epoch)
