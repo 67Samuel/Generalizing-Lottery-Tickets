@@ -10,6 +10,7 @@ import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
 from torch.hub import load_state_dict_from_url
+import numpy as np
 
 def args_parser_train():
 	"""
