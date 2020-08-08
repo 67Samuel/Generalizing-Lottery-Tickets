@@ -70,12 +70,20 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
+	
+	early_stopper = EarlyStopping(7)
 
 	print(f"Started Training...")
 	for epoch in range(1, num_epochs+1):
 		wandb.log({'epochs':epoch})
 		if epoch in lr_anneal_epochs:
 			optimizer.param_groups[0]['lr'] /= 10
+			
+		if (early_stopper.early_stop == True):
+			if all(num > epoch for num in lr_anneal_epochs):
+                		break
+			else:
+				optimizer.param_groups[0]['lr'] /= 10
 
 		for batch_num, data in enumerate(dataloader, 0):
 			inputs, labels = data[0].to(device), data[1].to(device)
@@ -83,6 +91,7 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 			optimizer.zero_grad()
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
+			early_stopper(val_loss=loss, model=model)
 			wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
