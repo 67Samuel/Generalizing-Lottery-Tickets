@@ -153,10 +153,10 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 
 		if args.random == 'false':
 			if is_equal_classes:
-				cpt = torch.load(args.init-path)
+				cpt = torch.load(args.init_path)
 				model.load_state_dict(cpt['model_state_dict'])
 			else:
-				cpt = torch.load(args.init-path)
+				cpt = torch.load(args.init_path)
 				new_dict = model.state_dict()
 				for key in new_dict.keys():
 					if "classifier" not in key and "fc" not in key:
