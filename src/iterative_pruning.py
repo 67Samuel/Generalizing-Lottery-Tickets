@@ -96,10 +96,10 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 	None
 	"""
 	if args.architecture == "vgg19":
-		num_epochs = 160
+		num_epochs = args.vgg19_epochs
 		lr_anneal_epochs = [80, 120]
 	elif args.architecture == "resnet50":
-		num_epochs = 90
+		num_epochs = args.resnet50_epochs
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
 		num_epochs = args.alexnet_epochs
