@@ -211,12 +211,12 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 				optimizer.param_groups[0]['lr'] = 
 				if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
-					if optimizer_type == 'sgd':
-						if architecture == "alexnet":
+					if args.optimizer == 'sgd':
+						if args.architecture == "alexnet":
 							optimizer.param_groups[0]['lr'] = alexnet_lr
 						else:
 							optimizer.param_groups[0]['lr'] = 0.1
-					elif optimizer_type == 'adam':
+					elif args.optimizer == 'adam':
 						optimizer.param_groups[0]['lr'] = 0.0003
 					else:
 						print('cycle not supported for this optimizer type')
