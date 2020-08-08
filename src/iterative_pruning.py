@@ -113,12 +113,12 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 
 	weight_fractions = get_weight_fractions()
 	
-	if args.optimizer_type == 'sgd':
+	if args.optimizer == 'sgd':
 		if args.architecture == "alexnet":
 			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':args.alexnet_lr, 'epochs':num_epochs})
 		else:
 			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
-	elif args.optimizer_type == 'adam':
+	elif args.optimizer == 'adam':
 		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
 		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
