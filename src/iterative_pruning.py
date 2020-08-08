@@ -209,8 +209,17 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 					optimizer.step()
 
 				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
-
+				optimizer.param_groups[0]['lr'] = 
 				if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
+					if optimizer_type == 'sgd':
+						if architecture == "alexnet":
+							optimizer.param_groups[0]['lr'] = alexnet_lr
+						else:
+							optimizer.param_groups[0]['lr'] = 0.1
+					elif optimizer_type == 'adam':
+						optimizer.param_groups[0]['lr'] = 0.0003
+					else:
+						print('cycle not supported for this optimizer type')
 					print('saving model...')
 					if pruning_iter != 0:
 						layer_index = 0
