@@ -4,6 +4,7 @@ import random
 import torchvision
 import torch.optim as optim
 import wandb
+import numpy as np
 
 
 def initialize_xavier_normal(layer):
