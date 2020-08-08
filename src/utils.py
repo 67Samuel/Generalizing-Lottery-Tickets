@@ -30,6 +30,7 @@ def args_parser_train():
 	parser.add_argument('--resnet50_epochs', default=90, type=int, help='number of epochs for resnet50 (default: 90)')
 	parser.add_argument('--vgg19_epochs', default=160, type=int, help='number of epochs for vgg19 (default: 160)')
 	parser.add_argument('--alexnet_lr', default=0.01, type=float, help='lr for alexnet (default: 0.01)')
+	parser.add_argument('--cycle_epoch', default=1, type=int, help='number of times to cycle epoch and lr per iteration (default: 1)')
 	return parser
 
 def args_parser_iterprune():
