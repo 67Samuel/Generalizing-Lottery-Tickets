@@ -86,6 +86,17 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 			wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
+			
+		if epoch == 300:
+			if optimizer_type == 'sgd':
+				if architecture == "alexnet":
+					optimizer.param_groups[0]['lr'] = alexnet_lr
+				else:
+					optimizer.param_groups[0]['lr'] = 0.1
+			elif optimizer_type == 'adam':
+				optimizer.param_groups[0]['lr'] = 0.0003
+			else:
+				print('cycle not supported for this optimizer type')
 
 		if loss < 0.3:
 			#if architecture == "resnet50":
