@@ -74,8 +74,13 @@ def train(model, run_name, batch_size, dataloader, architecture, optimizer_type,
 	early_stopper = EarlyStopping(7)
 
 	print(f"Started Training...")
+	original_lr = optimizer.param_groups[0]['lr']
 	for epoch in range(1, num_epochs+1):
 		wandb.log({'epochs':epoch})
+		
+		if original_lr < (optimizer.param_groups[0]['lr'])*1000000:
+			break
+		
 		if epoch in lr_anneal_epochs:
 			optimizer.param_groups[0]['lr'] /= 10
 			
