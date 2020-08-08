@@ -75,7 +75,7 @@ def permute_masks(old_masks):
 	return new_masks
 
 
-def prune_iteratively(model, run_name, batch_size, dataloader, architecture, optimizer_type, device, models_path, init_path, random, is_equal_classes, alexnet_epochs, alexnet_lr):
+def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 	"""
 	Performs iterative pruning
 
@@ -95,49 +95,39 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 	--------
 	None
 	"""
-	if architecture == "vgg19":
+	if args.architecture == "vgg19":
 		num_epochs = 160
 		lr_anneal_epochs = [80, 120]
-	elif architecture == "resnet50":
+	elif args.architecture == "resnet50":
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
-	elif architecture == "alexnet":
-		num_epochs = alexnet_epochs
+	elif args.architecture == "alexnet":
+		num_epochs = args.alexnet_epochs
 		lr_anneal_epochs=[]
 		for ms in args.milestone:
 			lr_anneal_epochs.append(ms)
 	else:
-		raise ValueError(architecture + " architecture not supported")
+		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
 
 	weight_fractions = get_weight_fractions()
 	
-	if optimizer_type == 'sgd':
-		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':alexnet_lr, 'epochs':num_epochs})
+	if args.optimizer_type == 'sgd':
+		if args.architecture == "alexnet":
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':args.alexnet_lr, 'epochs':num_epochs})
 		else:
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
-	elif optimizer_type == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+	elif args.optimizer_type == 'adam':
+		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
 		wandb.log({'prune iteration':pruning_iter})
 		print(f"Running pruning iteration {pruning_iter}")
-		if optimizer_type == 'sgd':
-			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=alexnet_lr, momentum=0.9, weight_decay=0.004)
-			else:
-				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-		elif optimizer_type == 'adam':
-			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
-		else:
-			raise ValueError(optimizer_type + " optimizer not supported")
-
 		if pruning_iter != 0:
-			cpt = torch.load(models_path + f"/{pruning_iter-1}_{num_epochs}")
+			cpt = torch.load(args.models_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
 
 			masks = []
@@ -157,11 +147,11 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 					zeros += mask.numel() - mask.nonzero().size(0)
 					total += mask.numel()
 					masks.append(mask)
-					if random != 'false':
+					if args.random != 'false':
 						masks = permute_masks(masks)
 			print(f"Fraction of weights pruned = {zeros}/{total} = {zeros/total}")  
 
-		if random == 'false':
+		if args.random == 'false':
 			if is_equal_classes:
 				cpt = torch.load(init_path)
 				model.load_state_dict(cpt['model_state_dict'])
@@ -175,48 +165,60 @@ def prune_iteratively(model, run_name, batch_size, dataloader, architecture, opt
 					else:
 						for m in model.modules():
 							if isinstance(model, nn.Conv2d):
-								if architecture == 'vgg19':
+								if args.architecture == 'vgg19':
 									nn.init.xavier_normal_(m.weight)
 									layer.bias.data.fill_(0)
-								elif architecture == 'resnet50':
+								elif args.architecture == 'resnet50':
 									nn.init.kaiming_normal_(m.weight)
 								else:
-									raise ValueError(architecture + " architecture not supported")
+									raise ValueError(args.architecture + " architecture not supported")
+									
+		for cycle in range(args.cycle_epoch):
+			if args.optimizer_type == 'sgd':
+				if args.architecture == "alexnet":
+					optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
+				else:
+					optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+			elif args.optimizer_type == 'adam':
+				optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
+			else:
+				raise ValueError(args.optimizer_type + " optimizer not supported")
 
-		model.to(device)
+			model.to(device)
 
-		for epoch in range(1, num_epochs+1):
-			wandb.log({'epochs':epoch})
-			if epoch in lr_anneal_epochs:
-				optimizer.param_groups[0]['lr'] /= 10
+			for epoch in range(1, num_epochs+1):
+				wandb.log({'epochs':epoch})
+				if epoch in lr_anneal_epochs:
+					optimizer.param_groups[0]['lr'] /= 10
 
-			for batch_num, data in enumerate(dataloader, 0):
-				inputs, labels = data[0].to(device), data[1].to(device)
-				optimizer.zero_grad()
-				
-				if pruning_iter != 0:
-					layer_index = 0
-					for name, params in model.named_parameters():
-						if "weight" in name:
-							params.data.mul_(masks[layer_index].to(device))
-							layer_index += 1
+				for batch_num, data in enumerate(dataloader, 0):
+					inputs, labels = data[0].to(device), data[1].to(device)
+					optimizer.zero_grad()
 
-				outputs = model(inputs)
-				loss = criterion(outputs, labels)
-				wandb.log({'prune loss':loss})
-				loss.backward()
-				optimizer.step()
-				
-			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+					if pruning_iter != 0:
+						layer_index = 0
+						for name, params in model.named_parameters():
+							if "weight" in name:
+								params.data.mul_(masks[layer_index].to(device))
+								layer_index += 1
 
-			if epoch == num_epochs:
-				if pruning_iter != 0:
-					layer_index = 0
-					for name, params in model.named_parameters():
-						if "weight" in name:
-							params.data.mul_(masks[layer_index].to(device))
-							layer_index += 1
-				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
+					outputs = model(inputs)
+					loss = criterion(outputs, labels)
+					wandb.log({'prune loss':loss})
+					loss.backward()
+					optimizer.step()
+
+				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+
+				if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
+					print('saving model...')
+					if pruning_iter != 0:
+						layer_index = 0
+						for name, params in model.named_parameters():
+							if "weight" in name:
+								params.data.mul_(masks[layer_index].to(device))
+								layer_index += 1
+					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
 	print("Please delete the saved model state dicts from iter 16 and below to free up space")
 
@@ -256,7 +258,7 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, True, args.alexnet_epochs, args.alexnet_lr)
+		prune_iteratively(model, args, dataloader, device, True)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.init_path, args.random, False, args.alexnet_epochs, args.alexnet_lr)
+		prune_iteratively(model, args, dataloader, device, False)
 
