@@ -218,7 +218,7 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 							if "weight" in name:
 								params.data.mul_(masks[layer_index].to(device))
 								layer_index += 1
-					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(epoch))
+					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },model_saving_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
 	print("Please delete the saved model state dicts from iter 16 and below to free up space")
 
