@@ -87,6 +87,7 @@ def train(model, args, dataloader, device):
 			
 		if (early_stopper.early_stop == True):
 			if all(num > epoch for num in lr_anneal_epochs):
+				print(f"epoch {epoch} > {lr_anneal_epochs[-1]} and early stopping is true. Stopping training..."
                 		break
 			else:
 				optimizer.param_groups[0]['lr'] /= 10
@@ -98,6 +99,7 @@ def train(model, args, dataloader, device):
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
 			early_stopper(val_loss=loss, model=model)
+			
 			wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
