@@ -174,6 +174,7 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 									raise ValueError(args.architecture + " architecture not supported")
 									
 		for cycle in range(args.cycle_epoch):
+			# For each cycle, reinitialize the optimizer and lr
 			if args.optimizer == 'sgd':
 				if args.architecture == "alexnet":
 					optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
@@ -209,17 +210,8 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 					optimizer.step()
 
 				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
-				optimizer.param_groups[0]['lr'] = 
+				# If you have completed all epochs for this cycle AND all cycles for this iteration, save model dict
 				if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
-					if args.optimizer == 'sgd':
-						if args.architecture == "alexnet":
-							optimizer.param_groups[0]['lr'] = alexnet_lr
-						else:
-							optimizer.param_groups[0]['lr'] = 0.1
-					elif args.optimizer == 'adam':
-						optimizer.param_groups[0]['lr'] = 0.0003
-					else:
-						print('cycle not supported for this optimizer type')
 					print('saving model...')
 					if pruning_iter != 0:
 						layer_index = 0
