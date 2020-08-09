@@ -79,7 +79,7 @@ def train(model, args, dataloader, device):
 	for epoch in range(1, num_epochs+1):
 		wandb.log({'epochs':epoch})
 		
-		if original_lr < (optimizer.param_groups[0]['lr'])*1000000:
+		if original_lr > (optimizer.param_groups[0]['lr'])*1000000:
 			break
 		
 		if epoch in lr_anneal_epochs:
