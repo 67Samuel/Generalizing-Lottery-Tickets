@@ -161,7 +161,7 @@ if __name__ == '__main__':
 			cpt = torch.load(str(load_model))
 		except Exception as e:
 			print(e)
-			cpt = torch.load("C:\Users\user\OneDrive - Singapore University of Technology and Design\Desktop\new_ver\src\"str(load_model))
+			cpt = torch.load("C:\Users\user\OneDrive - Singapore University of Technology and Design\Desktop\new_ver\src\" + str(load_model))
 		model.load_state_dict(cpt['model_state_dict'])
 
 	train(model, args, dataloader, device)
