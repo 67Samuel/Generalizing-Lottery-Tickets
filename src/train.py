@@ -86,7 +86,7 @@ def train(model, args, dataloader, device):
 			optimizer.param_groups[0]['lr'] /= 10
 			
 		if (early_stopper.early_stop == True):
-			if all(num > epoch for num in lr_anneal_epochs):
+			if any(num > epoch for num in lr_anneal_epochs):
 				print(f"epoch {epoch} > {lr_anneal_epochs[-1]} and early stopping is true. Stopping training...")
 				break
 			else:
