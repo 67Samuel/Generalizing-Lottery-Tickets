@@ -100,21 +100,9 @@ def train(model, args, dataloader, device):
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
 			early_stopper(val_loss=loss, model=model)
-			
 			wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
-			
-		if epoch == 300:
-			if args.optimizer == 'sgd':
-				if args.architecture == "alexnet":
-					optimizer.param_groups[0]['lr'] = args.alexnet_lr
-				else:
-					optimizer.param_groups[0]['lr'] = 0.1
-			elif args.optimizer == 'adam':
-				optimizer.param_groups[0]['lr'] = 0.0003
-			else:
-				print('cycle not supported for this optimizer type')
 
 		if loss < 0.3:
 			#if args.architecture == "resnet50":
