@@ -80,6 +80,7 @@ def train(model, args, dataloader, device):
 		wandb.log({'epochs':epoch})
 		
 		if original_lr > (optimizer.param_groups[0]['lr'])*1000000:
+			print(f"loss is too low at {optimizer.param_groups[0]['lr']}")
 			break
 		
 		if epoch in lr_anneal_epochs:
