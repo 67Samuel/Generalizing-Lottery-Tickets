@@ -32,6 +32,7 @@ def args_parser_train():
 	parser.add_argument('--vgg19_epochs', default=160, type=int, help='number of epochs for vgg19 (default: 160)')
 	parser.add_argument('--alexnet_lr', default=0.01, type=float, help='lr for alexnet (default: 0.01)')
 	parser.add_argument('--cycle_epoch', default=1, type=int, help='number of times to cycle epoch and lr per iteration (default: 1)')
+	parser.add_argument('--load_model', type=str, default=None, help='path to saved model (default: None)') 
 	return parser
 
 def args_parser_iterprune():
