@@ -156,6 +156,9 @@ if __name__ == '__main__':
 
 	#Loads model
 	model = load_model(args.architecture, num_classes)
+	if args.load_model != None:
+		cpt = torch.load(load_model)
+		model.load_state_dict(cpt['model_state_dict'])
 
 	train(model, args.run_name, args.batch_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.alexnet_epochs, args.alexnet_lr)
 
