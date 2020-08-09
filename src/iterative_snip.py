@@ -111,7 +111,7 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_path, random, is_equal_classes, reinit, alexnet_epochs, alexnet_lr, cycle_epoch=10000000):
+def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classes):
 	"""
 	Performs iterative pruning
 	Arguments
@@ -129,59 +129,70 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 	--------
 	None
 	"""
-	if architecture == "vgg19":
+	if args.architecture == "vgg19":
 		num_epochs = 160
 		lr_anneal_epochs = [80, 120]
-	elif architecture == "resnet50":
+	elif args.architecture == "resnet50":
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
-	elif architecture == "alexnet":
-		num_epochs = alexnet_epochs
+	elif args.architecture == "alexnet":
+		num_epochs = args.alexnet_epochs
 		lr_anneal_epochs=[]
 		for ms in args.milestone:
 			lr_anneal_epochs.append(ms)
-	elif architecture == "test_resnet50":
+	elif args.architecture == "test_resnet50":
 		num_epochs = 3
 		lr_anneal_epochs = []
 	else:
-		raise ValueError(architecture + " architecture not supported")
+		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
 
-	if optimizer_type == 'sgd':
-		if architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':alexnet_lr, 'epochs':num_epochs})
+	if args.optimizer == 'sgd':
+		if args.architecture == "alexnet":
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':args.alexnet_lr, 'epochs':num_epochs})
 		else:
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
-	elif optimizer_type == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
+			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
+	elif args.optimizer == 'adam':
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
 	else:
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
+		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
 		wandb.log({'prune iteration':pruning_iter})
 		print(f"Running pruning iteration {pruning_iter}")
-		if optimizer_type == 'sgd':
-			if architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=alexnet_lr, momentum=0.9, weight_decay=0.004)
+		if args.optimizer == 'sgd':
+			if args.architecture == "alexnet":
+				optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-		elif optimizer_type == 'adam':
+		elif args.optimizer == 'adam':
 			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 		else:
-			raise ValueError(optimizer_type + " optimizer not supported")
+			raise ValueError(args.optimizer + " optimizer not supported")
 
 		if pruning_iter != 0:
-			cpt = torch.load(models_path + f"/{pruning_iter-1}_{num_epochs}")
+			cpt = torch.load(args.model_saving_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
 			
+		for cycle in range(args.cycle_epoch):
+			if args.optimizer == 'sgd':
+				if args.architecture == "alexnet":
+					optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
+				else:
+					optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+			elif args.optimizer == 'adam':
+				optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
+			else:
+				raise ValueError(args.optimizer + " optimizer not supported")
+		
 		model.to(device)
 			
 		snip_factor = round((100*(0.8**(pruning_iter+1)))/100, 5)
 		print(f"Pruning 20% of latest model weights with SNIP, snip factor: {snip_factor}...")
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
 		# Reinit weights
-		if reinit:
+		if args.reinit:
 			model.apply(weight_reset)
 		# Apply mask
 		apply_prune_mask(model, keep_masks)
@@ -201,22 +212,12 @@ def prune_iteratively(model, run_name, batch_size, img_size, dataloader, archite
 				loss.backward()
 				optimizer.step()
 				
-			if epoch == cycle_epoch:
-				if optimizer_type == 'sgd':
-					if architecture == "alexnet":
-						optimizer.param_groups[0]['lr'] = alexnet_lr
-					else:
-						optimizer.param_groups[0]['lr'] = 0.1
-				elif optimizer_type == 'adam':
-					optimizer.param_groups[0]['lr'] = 0.0003
-				else:
-					print('cycle not supported for this optimizer type')
-				
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
-
-			if epoch == num_epochs:
-				print(f'saving checkpoint to {models_path}/{str(pruning_iter)}_{str(num_epochs)}...')
-				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },models_path + "/"+ str(pruning_iter) + "_" + str(num_epochs))
+			
+			# If you have completed all epochs for this cycle AND all cycles for this iteration, save model dict
+			if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
+				print(f'saving checkpoint to {args.model_saving_path}/{str(pruning_iter)}_{str(num_epochs)}...')
+				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/"+ str(pruning_iter) + "_" + str(num_epochs))
 	print("Finished Iterative Pruning")
 	print("Please delete the saved model state dicts from iter 16 and below to free up space")
 
@@ -267,6 +268,6 @@ if __name__ == '__main__':
 		raise ValueError(args.target_dataset + " dataset not supported")
 
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, True, args.reinit, args.alexnet_epochs, args.alexnet_lr, args.cycle_epoch)
+		prune_iteratively(model, args, img_size, dataloader, device, True)
 	else:
-		prune_iteratively(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.random, False, args.reinit, args.alexnet_epochs, args.alexnet_lr, args.cycle_epoch)
+		prune_iteratively(model, args, img_size, dataloader, device, False)
