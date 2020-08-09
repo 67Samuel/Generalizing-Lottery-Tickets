@@ -72,7 +72,7 @@ def train(model, args, dataloader, device):
 
 	model.to(device)
 	
-	early_stopper = EarlyStopping(7)
+	early_stopper = EarlyStopping(args.esp)
 
 	print(f"Started Training...")
 	original_lr = optimizer.param_groups[0]['lr']
