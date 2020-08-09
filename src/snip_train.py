@@ -122,7 +122,7 @@ def initialize_xavier_normal(layer):
 		torch.nn.init.xavier_normal_(layer.weight)
 		layer.bias.data.fill_(0)
 
-def train(model, run_name, batch_size, img_size, dataloader, architecture, optimizer_type, device, models_dir, alexnet_epochs, alexnet_lr):
+def train(model, args, img_size, dataloader, device):
 	"""
 	Function to train the network 
 	Arguments
@@ -137,35 +137,35 @@ def train(model, run_name, batch_size, img_size, dataloader, architecture, optim
 	-------
 	None
 	"""
-	if architecture == "vgg19":
+	if args.architecture == "vgg19":
 		num_epochs = 160
 		lr_anneal_epochs = [80, 120]
-	elif architecture == "resnet50":
+	elif args.architecture == "resnet50":
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
-	elif architecture == "alexnet":
-		num_epochs = alexnet_epochs
+	elif args.architecture == "alexnet":
+		num_epochs = args.alexnet_epochs
 		lr_anneal_epochs=[]
 		for ms in args.milestone:
 			lr_anneal_epochs.append(ms)
 	else:
-		raise ValueError(architecture + " architecture not supported")
+		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
-	if optimizer_type == 'sgd':
-		if architecture == "alexnet":
-			optimizer = optim.SGD(model.parameters(), lr=alexnet_lr, momentum=0.9, weight_decay=0.004)
+	if args.optimizer == 'sgd':
+		if args.architecture == "alexnet":
+			optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
 		else:
 			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-	elif optimizer_type == 'adam':
+	elif args.optimizer == 'adam':
 		optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 	else:
-		raise ValueError(optimizer_type + " optimizer not supported")
+		raise ValueError(args.optimizer + " optimizer not supported")
 
-	if (architecture == "vgg19") or (architecture == "alexnet"):
+	if (args.architecture == "vgg19") or (args.architecture == "alexnet"):
 		model.apply(initialize_xavier_normal)
 		
-	wandb.init(entity="67Samuel", project='Varungohli SNIP', name=run_name, config={'batch size':batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
+	wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
 	
@@ -190,16 +190,16 @@ def train(model, run_name, batch_size, img_size, dataloader, architecture, optim
 			loss.backward()
 			optimizer.step()
 
-		#if architecture == "resnet50":
+		#if args.architecture == "resnet50":
 		#	start_saving = 50
-		#elif architecture == "vgg19":
+		#elif args.architecture == "vgg19":
 		#	start_saving = 80
 		if loss < 3:
 			if (epoch%(num_epochs/10) == 0):
 				try:
-					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, models_dir + f"/{architecture}_{epoch}")
+					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
 				except FileNotFoundError:
-					print(models_dir + " path not found")
+					print(args.model_saving_path + " path not found")
 				
 		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
@@ -239,4 +239,4 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	train(model, args.run_name, args.batch_size, img_size, dataloader, args.architecture, args.optimizer, device, args.model_saving_path, args.alexnet_epochs, args.alexnet_lr)
+	train(model, img_size, dataloader, device)
