@@ -185,7 +185,7 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 		else:
 			raise ValueError(args.optimizer + " optimizer not supported")
 			
-		if (architecture == "vgg19") or (architecture == "alexnet"):
+		if (args.architecture == "vgg19") or (args.architecture == "alexnet"):
 			model.apply(initialize_xavier_normal)
 
 		if pruning_iter != 0:
