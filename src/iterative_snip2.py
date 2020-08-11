@@ -175,17 +175,6 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 			cpt = torch.load(args.model_saving_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
 			
-		for cycle in range(args.cycle_epoch):
-			if args.optimizer == 'sgd':
-				if args.architecture == "alexnet":
-					optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
-				else:
-					optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-			elif args.optimizer == 'adam':
-				optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
-			else:
-				raise ValueError(args.optimizer + " optimizer not supported")
-		
 		model.to(device)
 			
 		snip_factor = round((100*(0.8**(pruning_iter+1)))/100, 5)
