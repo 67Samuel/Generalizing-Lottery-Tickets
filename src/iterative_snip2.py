@@ -11,6 +11,20 @@ import torch.nn.functional as F
 import copy
 import types
 
+def initialize_xavier_normal(layer):
+	"""
+	Function to initialize a layer by picking weights from a xavier normal distribution
+	Arguments
+	---------
+	layer : The layer of the neural network
+	Returns
+	-------
+	None
+	"""
+	if type(layer) == nn.Conv2d:
+		torch.nn.init.xavier_normal_(layer.weight)
+		layer.bias.data.fill_(0)
+
 def snip_forward_conv2d(self, x):
         return F.conv2d(x, self.weight * self.weight_mask, self.bias,
                         self.stride, self.padding, self.dilation, self.groups)
@@ -170,6 +184,9 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 		else:
 			raise ValueError(args.optimizer + " optimizer not supported")
+			
+		if (architecture == "vgg19") or (architecture == "alexnet"):
+			model.apply(initialize_xavier_normal)
 
 		if pruning_iter != 0:
 			cpt = torch.load(args.model_saving_path + f"/{pruning_iter-1}_{num_epochs}")
