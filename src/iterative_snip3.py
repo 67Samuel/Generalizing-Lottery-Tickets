@@ -150,7 +150,7 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
-		num_epochs = 300
+		num_epochs = args.alexnet_epochs
 		lr_anneal_epochs=[]
 		for ms in args.milestone:
 			lr_anneal_epochs.append(ms)
