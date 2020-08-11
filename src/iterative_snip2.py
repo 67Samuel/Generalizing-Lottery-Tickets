@@ -163,7 +163,7 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 		print(f"Running pruning iteration {pruning_iter}")
 		if args.optimizer == 'sgd':
 			if args.architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
+				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
 			else:
 				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 		elif args.optimizer == 'adam':
@@ -193,18 +193,18 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 
 			for batch_num, data in enumerate(dataloader, 0):
 				inputs, labels = data[0].to(device), data[1].to(device)
+				
 				optimizer.zero_grad()
-
 				outputs = model(inputs)
 				loss = criterion(outputs, labels)
-				wandb.log({'prune loss':loss})
+				wandb.log({'prune loss':loss.item()})
 				loss.backward()
 				optimizer.step()
 				
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 			
 			# If you have completed all epochs for this cycle AND all cycles for this iteration, save model dict
-			if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
+			if (epoch == num_epochs):
 				print(f'saving checkpoint to {args.model_saving_path}/{str(pruning_iter)}_{str(num_epochs)}...')
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/"+ str(pruning_iter) + "_" + str(num_epochs))
 	print("Finished Iterative Pruning")
