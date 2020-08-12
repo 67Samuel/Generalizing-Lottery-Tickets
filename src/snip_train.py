@@ -200,6 +200,11 @@ def train(model, args, img_size, dataloader, device):
 					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
 				except FileNotFoundError:
 					print(args.model_saving_path + " path not found")
+		if epoch == num_epochs:
+			try:
+				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
+			except FileNotFoundError:
+				print(args.model_saving_path + " path not found")
 				
 		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
