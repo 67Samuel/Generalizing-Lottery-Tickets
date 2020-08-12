@@ -244,4 +244,4 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	train(model, img_size, dataloader, device)
+	train(model, args, img_size, dataloader, device)
