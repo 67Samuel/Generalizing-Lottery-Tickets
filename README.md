@@ -16,56 +16,79 @@ This repository contains PyTorch code to replicate the experiments given in Neur
 
 As finding the _winning lottery tickets_ is computationally expensive, we also open-source winning tickets (pretrained and pruned models) we generated during our experiments. Link : [Winning Tickets](https://drive.google.com/drive/folders/1Nd-J4EwmgWbUARYaqe9iCF6efEFf9S2P?usp=sharing)
 
+I have included the SNIP pruning method that was introduced in a conference paper at ICLR 2019
+
+[___"SNIP: Single-shot Network Pruning based on Connection Sensitivity"___](https://arxiv.org/abs/1810.02340)
+
+in order to compare the two advanced pruning methods.
+
 ## How to Setup    
 ```bash
 # clone project   
 git clone https://github.com/varungohil/Generalizing-Lottery-Tickets.git  
 
 # install all dependencies   
-cd Generalizing-Lottery-Tickets    
+cd Generalizing-Lottery-Tickets   
+# set up virtual env with pip3
 pip3 install -r requirements.txt
+# or anaconda
+conda env create -f environment.yml
+conda activate gen-lt-env
 ```
 
 ## How to Run
-There are 4 files in ```src``` folder:
+There are 6 files in ```src``` folder:
 - train.py             : Use to train the neural network and find the winning ticket
+- snip_train.py        : Use to prune and train the neural network using SNIP
 - test.py              : Use to test the accuracy of the trained model
-- iterative_pruning.py : Use to iteratively prune the model.
+- iterative_pruning.py : Use to iteratively prune the model using the lottery ticket hypothesis
+- iterative_snip.py    : Use to iteratively prune the model using SNIP (for comparison purposes only, note that SNIP was designed as a one-shot pruning method)
 - utils.py             : Contains helper functions used in scripts mentioned above
 
 To support more datasets and architectures, we need to add necessary code to utils.py
 
-### Using train.py
+### Using train.py / snip_train.py
 ##### Mandatory arguments:
-- --architecture : To specify the neural network architecture (vgg19 and resnet50)
+- --architecture : To specify the neural network architecture (vgg19, resnet50 or alexnet)
 - --dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
-##### Optional arguments:
-- --batch-size : To set the batch size while training
+- --wandb        : Set to True to log results to wandb
+##### Optional arguments to note:
+- --batch_size : To set the batch size while training
 - --optimizer  : The optimizer to use for training (sgd and adam). sgd used by default
-- --seed : To set the ranodm seed
-- --model-saving-path : Path to directory where trained model is saved.
+- --model_saving_path : Path to directory where trained model is saved.
+- --snip       : Percentage of model you want to prune using SNIP (default is 50%)
+- --entity     : Entity (username) of wandb account (must use if wandb is True)
+- --project    : Wandb project to log results to
+- --run_name   : Run name to log to wandb
 
-The trained model will be saved for first 5 epochs. For VGG19 it will be saved for every 16<sup>th</sup> epoch. FOr Resnet50, the model will be saved for every 9<sup>th</sup> epoch. For our experiments, while pruning, we reinitialize te model with weights after epoch 2 (late resetting of 1).
+Models will be saved after loss decreases below 0.3, in intervals of num_epochs/10. VGG19 will be saved for every 16<sup>th</sup> epoch. FOr Resnet50, the model will be saved for every 9<sup>th</sup> epoch. For our experiments, while pruning, we reinitialize the model with weights after epoch 2 (late resetting of 1).
 ```bash
 # source folder
 cd Generalizing-Lottery-Ticket/src   
 
 # run train.py
-python3 train.py --architecture=resnet50 --dataset=cifar10    
+python train.py --architecture=resnet50 --dataset=cifar100 --wandb --entity=67Samuel
+
+# run snip_train.py
+python snip_train.py --architecture=resnet50 --dataset=cifar100 --snip=70 --wandb --entity=67Samuel --project=SNIP_trained
 ```
 
 ### Using iterative_pruning.py
 ##### Mandatory arguments:
 - --architecture : To specify the neural network architecture (vgg19 and resnet50)
-- --target-dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
-- --source-dataset      : The dataset using which winning ticket initialization was found (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
-- --init-path   : Path to model with winning ticket initialization
+- --target_dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
+- --source_dataset      : The dataset using which winning ticket initialization was found (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
+- --init_path   : Path to model with winning ticket initialization
+- --wandb       : Set to True to log results to wandb
 
 ##### Optional arguments:
-- --batch-size : To set the batch size while training
+- --batch_size : To set the batch size while training
 - --optimizer  : The optimizer to use for training (sgd and adam). sgd used by default
 - --seed : To set the ranodm seed
-- --model-saving-path : Path to directory where trained model is saved.
+- --model_saving_path : Path to directory where trained model is saved
+- --entity     : Entity (username) of wandb account (must use if wandb is True)
+- --project    : Wandb project to log results to
+- --run_name   : Run name to log to wandb
 
 The script will run 30 pruning iterations which will prune away 99.9% of the weights. The trained and pruned model will be saved at end of each pruning iteration
 
@@ -73,28 +96,31 @@ The script will run 30 pruning iterations which will prune away 99.9% of the wei
 # source folder
 cd Generalizing-Lottery-Ticket/src   
 
-# run iterative_pruning.py
-python3 iterative_pruning.py --architecture=resnet50 --source-dataset=cifar10 --target-dataset=cifar100 --model-saving-path=<path-to-dir-where-models-are-to-be-stored>
+# run iterative_pruning.py and iterative_snip.py the same way
+python iterative_pruning.py --architecture=resnet50 --source-dataset=cifar100 --target-dataset=cifar100 --model-saving-path=<path-to-dir-where-models-are-to-be-stored> --wandb --entity=67Samuel
 ```
 
 ### Using test.py
 ##### Mandatory arguments:
 - --architecture : To specify the neural network architecture (vgg19 and resnet50)
 - --dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
-- --model-path   : The path to moedl whose accuracy needs to be evaluated.
+- --model_path   : The path to moedl whose accuracy needs to be evaluated.
+- --wandb       : Set to True to log results to wandb
 
 ##### Optional arguments:
 - --batch-size : To set the batch size while training
+- --entity     : Entity (username) of wandb account (must use if wandb is True)
+- --project    : Wandb project to log results to
+- --run_name   : Run name to log to wandb
 
 Running this script will print the _Fraction of pruned weights_ in the model and the _Test Accuracy_. 
 ```bash
 # source folder
 cd Generalizing-Lottery-Ticket/src   
 
-# run train.py
-python3 test.py --architecture=resnet50 --dataset=cifar10 --model-path=<path-to-model>   
+# run test.py
+python test.py --architecture=resnet50 --dataset=cifar10 --model-path=<path-to-model> --wandb --entity=67Samuel
 ```
-
 
 ### Results   
 The results of the replicated experiments can be found in plots folder.
