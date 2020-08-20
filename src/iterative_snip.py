@@ -125,20 +125,17 @@ def weight_reset(m):
 	if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
 		m.reset_parameters()
 
-def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classes):
+def prune_iteratively(model, args, img_size, dataloader, device):
 	"""
 	Performs iterative pruning
 	Arguments
 	---------
 	model : the PyTorch neural network model to be trained
 	dataloader : PyTorch dataloader for loading the dataset
-	architecture : The neural network architecture (VGG19 or ResNet50)
-	optimizer_type : The optimizer to use for training (SGD / Adam)
+	args.architecture : The neural network architecture (VGG19 or ResNet50)
+	args.optimizer : The optimizer to use for training (SGD / Adam)
 	device : Device(GPU/CPU) on which to perform computation
-	models_path: Path to directory where trained model/checkpoints will be saved
-	init_path : Path to winning ticket initialization model
-	random    : Boolean which when True perform pruning for random ticket
-	is_equal_classes : Boolean to indicate is source and target dataset have equal number of classes
+	args.model_saving_path: Path to directory where trained model/checkpoints will be saved
 	Returns
 	--------
 	None
@@ -150,36 +147,29 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
-		num_epochs = args.alexnet_epochs
-		lr_anneal_epochs=[]
-		for ms in args.milestone:
-			lr_anneal_epochs.append(ms)
-	elif args.architecture == "test_resnet50":
-		num_epochs = 3
-		lr_anneal_epochs = []
+		num_epochs = 500
+		lr_anneal_epochs = [450, 470, 480, 490]
 	else:
 		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
-
-	if args.optimizer == 'sgd':
-		if args.architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.01, 'epochs':num_epochs})
-		else:
-			wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
-	elif args.optimizer == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
-	else:
-		wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
+	
+	if args.wandb:
+		# run wandb init
+		if args.optimizer == 'sgd':
+			lr=0.01
+		elif args.optimizer == 'adam':
+			lr=0.0003
+		wandb.init(entity=args.entity, project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':lr, 'epochs':num_epochs})
+	
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
-		wandb.log({'prune iteration':pruning_iter})
+		if args.wandb:
+			# log each iteration to wandb
+			wandb.log({'prune iteration':pruning_iter})
 		print(f"Running pruning iteration {pruning_iter}")
 		if args.optimizer == 'sgd':
-			if args.architecture == "alexnet":
-				optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
-			else:
-				optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+			optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005)
 		elif args.optimizer == 'adam':
 			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 		else:
@@ -194,39 +184,43 @@ def prune_iteratively(model, args, img_size, dataloader, device, is_equal_classe
 			
 		model.to(device)
 			
+		# snip percentage to increase by 20% for each iteration
 		snip_factor = round((100*(0.8**(pruning_iter+1)))/100, 5)
 		print(f"Pruning 20% of latest model weights with SNIP, snip factor: {snip_factor}...")
 		keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
-		# Reinit weights
+		# Reinitialise weights
 		if args.reinit:
 			model.apply(weight_reset)
 		# Apply mask
 		apply_prune_mask(model, keep_masks)
 
 		for epoch in range(1, num_epochs+1):
-			wandb.log({'epochs':epoch})
+			if args.wandb:
+				# log each epoch
+				wandb.log({'epochs':epoch})
 			if epoch in lr_anneal_epochs:
+				# decrease lr at previously specified epochs
 				optimizer.param_groups[0]['lr'] /= 10
 
 			for batch_num, data in enumerate(dataloader, 0):
 				inputs, labels = data[0].to(device), data[1].to(device)
-				
 				optimizer.zero_grad()
 				outputs = model(inputs)
 				loss = criterion(outputs, labels)
-				wandb.log({'prune loss':loss.item()})
+				if args.wandb:
+					# log loss at each epoch
+					wandb.log({'prune loss':loss.item()})
 				loss.backward()
 				optimizer.step()
-				
-			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+			if args.wandb:
+				# log lr at each epoch
+				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 			
-			# If you have completed all epochs for this cycle AND all cycles for this iteration, save model dict
 			if (epoch == num_epochs):
+				# save model at the end of each iteration, file looks like 1_500, 2_500 etc
 				print(f'saving checkpoint to {args.model_saving_path}/{str(pruning_iter)}_{str(num_epochs)}...')
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/"+ str(pruning_iter) + "_" + str(num_epochs))
 	print("Finished Iterative Pruning")
-	print("Please delete the saved model state dicts from iter 16 and below to free up space")
-
 
 if __name__ == '__main__':
 	#Parsers the command line arguments
@@ -241,7 +235,7 @@ if __name__ == '__main__':
 	print(f'Using {device} device.')
 
 
-	#Checks number of classes to aa appropriate linear layer at end of model
+	#Checks number of classes for appropriate linear layer at end of model
 	if args.source_dataset in ['cifar10', 'svhn', 'fashionmnist']:
 		num_classes_source = 10
 	elif args.source_dataset in ['cifar100']:
@@ -249,23 +243,13 @@ if __name__ == '__main__':
 	else:
 		raise ValueError(args.source_dataset + " as a source dataset is not supported")
 
-	if args.target_dataset in ['cifar10', 'svhn', 'fashionmnist']:
-		num_classes_target = 10
-	elif args.target_dataset in ['cifar100']:
-		num_classes_target = 100
-	else:
-		raise ValueError(args.target_dataset + " as a target dataset is not supported")
-
 	#Loads dataset
 	dataloader = load_dataset(args.target_dataset, args.batch_size, True)
 
 	#Loads model
-	if args.architecture == "test_resnet50":
-		model = load_model("resnet50", num_classes_target)
-	else:
-		model = load_model(args.architecture, num_classes_target)
-  
-  #Get img size
+	model = load_model(args.architecture, num_classes_target)
+ 
+	# Get image size depending on dataset to use in SNIP function
 	if args.target_dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
 		img_size = 32
 	elif args.target_dataset == 'fashionmnist':
@@ -273,7 +257,4 @@ if __name__ == '__main__':
 	else:
 		raise ValueError(args.target_dataset + " dataset not supported")
 
-	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args, img_size, dataloader, device, True)
-	else:
-		prune_iteratively(model, args, img_size, dataloader, device, False)
+	prune_iteratively(model, args, img_size, dataloader, device)
