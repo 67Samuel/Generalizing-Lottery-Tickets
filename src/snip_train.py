@@ -144,19 +144,14 @@ def train(model, args, img_size, dataloader, device):
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
-		num_epochs = args.alexnet_epochs
-		lr_anneal_epochs=[]
-		for ms in args.milestone:
-			lr_anneal_epochs.append(ms)
+		num_epochs = 500
+		lr_anneal_epochs = [450, 470, 480, 490]
 	else:
 		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
 	if args.optimizer == 'sgd':
-		if args.architecture == "alexnet":
-			optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
-		else:
-			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+		optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
 	elif args.optimizer == 'adam':
 		optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 	else:
@@ -165,18 +160,22 @@ def train(model, args, img_size, dataloader, device):
 	if (args.architecture == "vgg19") or (args.architecture == "alexnet"):
 		model.apply(initialize_xavier_normal)
 		
-	wandb.init(entity="67Samuel", project='Varungohli SNIP', name=args.run_name, config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
+	if args.wandb:
+		wandb.init(entity="args.entity", project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
 	
 	print(f"Pruning {args.snip}% of weights with SNIP...")
+	# get snip factor in form required for SNIP function
 	snip_factor = (100 - args.snip)/100
 	keep_masks = SNIP(model, snip_factor, dataloader, device, img_size=img_size)
 	apply_prune_mask(model, keep_masks)
 
 	print(f"Started Training...")
 	for epoch in range(1, num_epochs+1):
-		wandb.log({'epochs':epoch})
+		if args.wandb:
+			# log each epoch
+			wandb.log({'epochs':epoch})
 		if epoch in lr_anneal_epochs:
 			optimizer.param_groups[0]['lr'] /= 10
 
@@ -186,17 +185,18 @@ def train(model, args, img_size, dataloader, device):
 			optimizer.zero_grad()
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
-			wandb.log({'train loss':loss.item()})
+			if args.wandb:
+				# log loss at each epoch
+				wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
 
-		#if args.architecture == "resnet50":
-		#	start_saving = 50
-		#elif args.architecture == "vgg19":
-		#	start_saving = 80
-		if loss < 3:
+		# Don't save if loss is too high to save memory
+		if loss < 4:
+			# save model at equal intervals 10 times in the course of training
 			if (epoch%(num_epochs/10) == 0):
 				try:
+					# saved binary file will look like alexnet_500 etc
 					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
 				except FileNotFoundError:
 					print(args.model_saving_path + " path not found")
@@ -205,8 +205,9 @@ def train(model, args, img_size, dataloader, device):
 				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
 			except FileNotFoundError:
 				print(args.model_saving_path + " path not found")
-				
-		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+		if args.wandb:
+			# log lr at each epoch
+			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
 	print("Finished Training!")
 
@@ -226,14 +227,15 @@ if __name__ == '__main__':
 	#Loads dataset
 	dataloader = load_dataset(args.dataset, args.batch_size, True)
 
-	#Checks number of classes to aa appropriate linear layer at end of model
+	#Checks number of classes to make appropriate linear layer at end of model
 	if args.dataset in ['cifar10', 'fashionmnist', 'svhn']:
 		num_classes = 10
 	elif args.dataset in ['cifar100']:
 		num_classes = 100
 	else:
 		raise ValueError(args.dataset + " dataset not supported")
-		
+	
+	# Get image size depending on dataset to use in SNIP function
 	if args.dataset in ['cifar10', 'cifar100', 'svhn', 'cifar10a', 'cifar10b']:
 		img_size = 32
 	elif args.dataset == 'fashionmnist':
