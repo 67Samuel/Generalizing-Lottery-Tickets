@@ -47,19 +47,15 @@ def train(model, args, dataloader, device):
 		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
-		num_epochs = args.alexnet_epochs
-		lr_anneal_epochs=[]
-		for ms in args.milestone:
-			lr_anneal_epochs.append(ms)
+		num_epochs = 500
+		lr_anneal_epochs = [450, 470, 480, 490]
 	else:
 		raise ValueError(args.architecture + " architecture not supported")
 
 	criterion = nn.CrossEntropyLoss().cuda()
+	
 	if args.optimizer == 'sgd':
-		if args.architecture == "alexnet":
-			optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
-		else:
-			optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+		optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
 	elif args.optimizer == 'adam':
 		optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
 	else:
@@ -68,59 +64,64 @@ def train(model, args, dataloader, device):
 	if (args.architecture == "vgg19") or (args.architecture == "alexnet"):
 		model.apply(initialize_xavier_normal)
 		
-	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
+	if args.wandb:
+		wandb.init(entity=args.entity, project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':optimizer.param_groups[0]['lr'], 'epochs':num_epochs})
 
 	model.to(device)
 	
+	# initialise early stopper to stop model when loss does not increase after a certain patience
 	early_stopper = EarlyStopping(args.esp)
 
 	print(f"Started Training...")
 	original_lr = optimizer.param_groups[0]['lr']
 	for epoch in range(1, num_epochs+1):
-		wandb.log({'epochs':epoch})
+		if args.wandb:
+			# log each epoch
+			wandb.log({'epochs':epoch})
 		
-		if original_lr > (optimizer.param_groups[0]['lr'])*1000000:
+		# if loss becomes too low due to early stopper patience running out too many times, stop training
+		if original_lr > (optimizer.param_groups[0]['lr'])*(10*len(lr_anneal_epochs)+10):
 			print(f"loss is too low at {optimizer.param_groups[0]['lr']}")
 			break
 		
 		if epoch in lr_anneal_epochs:
+			# decrease lr after previously set epochs
 			optimizer.param_groups[0]['lr'] /= 10
-			
+		
 		if (early_stopper.early_stop == True):
+			# if there are still more lr milestones that haven't come, derease lr and continue. If all lr milestones have been completed, stop the training
 			if all(num < epoch for num in lr_anneal_epochs):
 				print(f"epoch {epoch} > {lr_anneal_epochs[-1]} and early stopping is true. Stopping training...")
 				break
 			else:
-				optimizer.param_groups[0]['lr'] /= 10
+				optimizer.param_groups[0]['lr'] /= 2
 
 		for batch_num, data in enumerate(dataloader, 0):
 			inputs, labels = data[0].to(device), data[1].to(device)
-
 			optimizer.zero_grad()
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
+			# call early stopper
 			early_stopper(val_loss=loss, model=model)
-			wandb.log({'train loss':loss.item()})
+			if args.wandb:
+				# log loss after each batch
+				wandb.log({'train loss':loss.item()})
 			loss.backward()
 			optimizer.step()
-
+		
+		# save model only if loss is past 0.3 to save memory
 		if loss < 0.3:
-			#if args.architecture == "resnet50":
-			#	start_saving = 50
-			#elif args.architecture == "vgg19":
-			#	start_saving = 80
-			#elif args.architecture == "alexnet":
-			#	start_saving = 250
 			if (epoch%(num_epochs/10) == 0):
 				try:
+					# saved file looks like alexnet_500 etc
 					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
 				except FileNotFoundError:
 					print(args.model_saving_path + " path not found")
-				
-		wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+		if args.wandb:
+			#log lr at each epoch
+			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
 	print("Finished Training!")
-
 
 if __name__ == '__main__':
 	#Parsers the command line arguments
