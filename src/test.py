@@ -6,7 +6,7 @@ import torch.optim as optim
 import wandb
 
 
-def test(model, run_name, architecture, dataloader, device, model_path):
+def test(model, args, dataloader, device):
 	"""
 	Function to print the fraction of pruned weights and test accuracy of a model
 
@@ -20,8 +20,9 @@ def test(model, run_name, architecture, dataloader, device, model_path):
 	Returns:
 	None
 	"""
-	wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=run_name)
-	cpt = torch.load(model_path)
+	if args.wandb:
+		wandb.init(entity=args.entity, project=args.project, name=args.run_name)
+	cpt = torch.load(args.model_path)
 	model.load_state_dict(cpt['model_state_dict'])
 	model.eval()
 	model.to(device)
@@ -45,7 +46,8 @@ def test(model, run_name, architecture, dataloader, device, model_path):
 			total += labels.size(0)
 			correct += (predicted == labels).sum().item()
 	print(f"Accuracy: {100 * correct / total}")
-	wandb.log({'accuracy':100 * correct / total})
+	if args.wandb:
+		wandb.log({'accuracy':100 * correct / total})
 
 if __name__ == '__main__':
 
@@ -71,4 +73,4 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes)
 
-	test(model, args.run_name, args.architecture, dataloader, device, args.model_path)
+	test(model, args, dataloader, device)
