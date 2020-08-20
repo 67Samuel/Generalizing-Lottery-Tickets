@@ -96,16 +96,14 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 	None
 	"""
 	if args.architecture == "vgg19":
-		num_epochs = args.vgg19_epochs
+		num_epochs = 160
 		lr_anneal_epochs = [80, 120]
 	elif args.architecture == "resnet50":
-		num_epochs = args.resnet50_epochs
+		num_epochs = 90
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
-		num_epochs = args.alexnet_epochs
-		lr_anneal_epochs=[]
-		for ms in args.milestone:
-			lr_anneal_epochs.append(ms)
+		num_epochs = 500
+		lr_anneal_epochs = [450, 470-, 480, 490]
 	else:
 		raise ValueError(args.architecture + " architecture not supported")
 
@@ -113,23 +111,26 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 
 	weight_fractions = get_weight_fractions()
 	
-	if args.optimizer == 'sgd':
-		if args.architecture == "alexnet":
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':args.alexnet_lr, 'epochs':num_epochs})
-		else:
-			wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.1, 'epochs':num_epochs})
-	elif args.optimizer == 'adam':
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'lr':0.0003, 'epochs':num_epochs})
-	else:
-		wandb.init(entity="67Samuel", project='Varungohli Lottery Ticket', name=args.run_name, config={'batch size':args.batch_size, 'epochs':num_epochs})
+	if args.wandb:
+		# run wandb init
+		if args.optimizer == 'sgd':
+			lr=0.01
+		elif args.optimizer == 'adam':
+			lr=0.0003
+		wandb.init(entity=args.entity, project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':lr, 'epochs':num_epochs})
+	
 	print("Iterative Pruning started")
 	for pruning_iter in range(0,31):
-		wandb.log({'prune iteration':pruning_iter})
+		if args.wandb:
+			# log each iteration to wandb
+			wandb.log({'prune iteration':pruning_iter})
 		print(f"Running pruning iteration {pruning_iter}")
 		if pruning_iter != 0:
+			# load pretrained winning ticket
 			cpt = torch.load(args.models_path + f"/{pruning_iter-1}_{num_epochs}")
 			model.load_state_dict(cpt['model_state_dict'])
 
+			# apply mask
 			masks = []
 			flat_model_weights = np.array([])
 			for name, params in model.named_parameters():
@@ -172,57 +173,56 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 									nn.init.kaiming_normal_(m.weight)
 								else:
 									raise ValueError(args.architecture + " architecture not supported")
-									
-		for cycle in range(args.cycle_epoch):
-			# For each cycle, reinitialize the optimizer and lr
-			if args.optimizer == 'sgd':
-				if args.architecture == "alexnet":
-					optimizer = optim.SGD(model.parameters(), lr=args.alexnet_lr, momentum=0.9, weight_decay=0.004)
-				else:
-					optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-			elif args.optimizer == 'adam':
-				optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
-			else:
-				raise ValueError(args.optimizer_type + " optimizer not supported")
+		# set optimizer
+		if args.optimizer == 'sgd':
+			optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.004)
+		elif args.optimizer == 'adam':
+			optimizer = optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0001)
+		else:
+			raise ValueError(args.optimizer_type + " optimizer not supported")
 
-			model.to(device)
+		model.to(device)
 
-			for epoch in range(1, num_epochs+1):
+		for epoch in range(1, num_epochs+1):
+			if args.wandb:
+				# log each epoch
 				wandb.log({'epochs':epoch})
-				if epoch in lr_anneal_epochs:
-					optimizer.param_groups[0]['lr'] /= 10
+			if epoch in lr_anneal_epochs:
+				# decrease lr at previously specified epochs
+				optimizer.param_groups[0]['lr'] /= 10
 
-				for batch_num, data in enumerate(dataloader, 0):
-					inputs, labels = data[0].to(device), data[1].to(device)
-					optimizer.zero_grad()
+			for batch_num, data in enumerate(dataloader, 0):
+				inputs, labels = data[0].to(device), data[1].to(device)
+				optimizer.zero_grad()
 
-					if pruning_iter != 0:
-						layer_index = 0
-						for name, params in model.named_parameters():
-							if "weight" in name:
-								params.data.mul_(masks[layer_index].to(device))
-								layer_index += 1
+				if pruning_iter != 0:
+					layer_index = 0
+					for name, params in model.named_parameters():
+						if "weight" in name:
+							params.data.mul_(masks[layer_index].to(device))
+							layer_index += 1
 
-					outputs = model(inputs)
-					loss = criterion(outputs, labels)
+				outputs = model(inputs)
+				loss = criterion(outputs, labels)
+				if args.wandb:
+					# log loss at each epoch
 					wandb.log({'prune loss':loss})
-					loss.backward()
-					optimizer.step()
-
+				loss.backward()
+				optimizer.step()
+			
+			if args.wandb:
+				# log lr at each epoch
 				wandb.log({'train lr':optimizer.param_groups[0]['lr']})
-				# If you have completed all epochs for this cycle AND all cycles for this iteration, save model dict
-				if (epoch == num_epochs) and (cycle == (args.cycle_epoch-1)):
-					print('saving model...')
-					if pruning_iter != 0:
-						layer_index = 0
-						for name, params in model.named_parameters():
-							if "weight" in name:
-								params.data.mul_(masks[layer_index].to(device))
-								layer_index += 1
-					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/"+ str(pruning_iter) + "_" + str(epoch))
+			if (epoch == num_epochs):
+				print('saving model...')
+				if pruning_iter != 0:
+					layer_index = 0
+					for name, params in model.named_parameters():
+						if "weight" in name:
+							params.data.mul_(masks[layer_index].to(device))
+							layer_index += 1
+				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/"+ str(pruning_iter) + "_" + str(epoch))
 	print("Finished Iterative Pruning")
-	print("Please delete the saved model state dicts from iter 16 and below to free up space")
-
 
 if __name__ == '__main__':
 	#Parsers the command line arguments
@@ -258,6 +258,7 @@ if __name__ == '__main__':
 	#Loads model
 	model = load_model(args.architecture, num_classes_target)
 
+	# for trasfer learning
 	if num_classes_source == num_classes_target:
 		prune_iteratively(model, args, dataloader, device, True)
 	else:
