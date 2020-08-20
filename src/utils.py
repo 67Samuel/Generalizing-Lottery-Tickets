@@ -27,13 +27,11 @@ def args_parser_train():
 	parser.add_argument('--snip', default=50.0, type=float, help='snip percentage, 80 means 80% snip (default: 50.0)')
 	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
 	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
-	parser.add_argument('--alexnet_epochs', default=300, type=int, help='number of epochs for alexnet (default: 300)')
-	parser.add_argument('--resnet50_epochs', default=90, type=int, help='number of epochs for resnet50 (default: 90)')
-	parser.add_argument('--vgg19_epochs', default=160, type=int, help='number of epochs for vgg19 (default: 160)')
-	parser.add_argument('--alexnet_lr', default=0.01, type=float, help='lr for alexnet (default: 0.01)')
-	parser.add_argument('--cycle_epoch', default=1, type=int, help='number of times to cycle epoch and lr per iteration (default: 1)')
 	parser.add_argument('--load_model', type=str, default=None, help='path to saved model (default: None)') 
 	parser.add_argument('--esp', default=10, type=int, help='patience for early stopping (default: 10)')  
+	parser.add_argument('--project', default='Varungohli Lottery Ticket', type=str, help='name of the wandb project (default: Varungohli Lottery Ticket)')  
+	parser.add_argument('--entity', default='name', type=str, help='wandb username (default: name)') 
+	parser.add_argument('--wandb', required=True, action='store_true', default=False, help='use wandb logging') 
 	return parser
 
 def args_parser_iterprune():
@@ -54,11 +52,9 @@ def args_parser_iterprune():
 	parser.add_argument('--milestone', '-ms', nargs='+', type=int, default=[100, 150, 200, 250], help='4 points to decrease lr for alexnet at (default: [100, 150, 200, 250])')
 	parser.add_argument('--reinit', action='store_true', default=False, help='reinitialize the model weights and biases after every iteration (default: False)')
 	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
-	parser.add_argument('--alexnet_epochs', default=300, type=int, help='number of epochs for alexnet (default: 300)')
-	parser.add_argument('--resnet50_epochs', default=90, type=int, help='number of epochs for resnet50 (default: 90)')
-	parser.add_argument('--vgg19_epochs', default=160, type=int, help='number of epochs for vgg19 (default: 160)')
-	parser.add_argument('--alexnet_lr', default=0.01, type=float, help='lr for alexnet (default: 0.01)')
-	parser.add_argument('--cycle_epoch', default=1, type=int, help='number of times to cycle epoch and lr per iteration (default: 1)')
+	parser.add_argument('--project', default='Varungohli Lottery Ticket', type=str, help='name of the wandb project (default: Varungohli Lottery Ticket)')  
+	parser.add_argument('--entity', default='name', type=str, help='wandb username (default: name)') 
+	parser.add_argument('--wandb', required=True, action='store_true', default=False, help='use wandb logging') 
 	return parser
 
 
@@ -73,6 +69,9 @@ def args_parser_test():
 	parser.add_argument('--model_path',type=str, required=True, help='path to the model for finding test accuracy')
 	parser.add_argument('--gpu', type=int, default=0, help='which gpu to use (default: 0)')
 	parser.add_argument('--run_name', default='test run', type=str, help='name of the run, recorded in wandb (default: test run)')  
+	parser.add_argument('--project', default='Varungohli Lottery Ticket', type=str, help='name of the wandb project (default: Varungohli Lottery Ticket)')  
+	parser.add_argument('--entity', default='name', type=str, help='wandb username (default: name)') 
+	parser.add_argument('--wandb', required=True, action='store_true', default=False, help='use wandb logging') 
 	return parser
 
 class EarlyStopping:
