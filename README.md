@@ -25,7 +25,7 @@ in order to compare the two advanced pruning methods.
 ## How to Setup    
 ```bash
 # clone project   
-git clone https://github.com/varungohil/Generalizing-Lottery-Tickets.git  
+git clone https://github.com/67Samuel/Generalizing-Lottery-Tickets.git
 
 # install all dependencies   
 cd Generalizing-Lottery-Tickets   
