@@ -89,7 +89,7 @@ def prune(model, args, dataloader, device):
 		wandb.init(entity=args.entity, project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':lr, 'epochs':num_epochs})
 	
 
-	cpt = torch.load(args.models_path + f"/{pruning_iter-1}_{num_epochs}")
+	cpt = torch.load(args.models_path + f"/{args.architecture}_{num_epochs}")
 	model.load_state_dict(cpt['model_state_dict'])
 
 	# apply mask
@@ -162,8 +162,8 @@ def prune(model, args, dataloader, device):
 					if "weight" in name:
 						params.data.mul_(masks[layer_index].to(device))
 						layer_index += 1
-			torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/" + str(epoch))
-	print("Finished Iterative Pruning")
+			torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/one_shot_" + str(epoch))
+	print("Finished One Shot Pruning")
 
 if __name__ == '__main__':
 	#Parsers the command line arguments
