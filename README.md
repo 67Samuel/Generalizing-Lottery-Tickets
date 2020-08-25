@@ -79,12 +79,13 @@ python snip_train.py --architecture=resnet50 --dataset=cifar100 --snip=70 --wand
 - --target_dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
 - --source_dataset      : The dataset using which winning ticket initialization was found (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
 - --wandb       : Set to True to log results to wandb
+- --init_path   : Path to winning initialization model
 
 ##### Optional arguments:
 - --batch_size : To set the batch size while training
 - --optimizer  : The optimizer to use for training (sgd and adam). sgd used by default
 - --seed : To set the ranodm seed
-- --model_saving_path : Path to directory where trained model is saved (default is ./)
+- --model_saving_path : Path to directory where pruned model will be saved (default is ./)
 - --entity     : Entity (username) of wandb account (must use if wandb is True)
 - --project    : Wandb project to log results to
 - --run_name   : Run name to log to wandb
@@ -96,7 +97,7 @@ The script will run 30 pruning iterations which will prune away 99.9% of the wei
 cd Generalizing-Lottery-Ticket/src   
 
 # run iterative_pruning.py and iterative_snip.py the same way
-python iterative_pruning.py --architecture=resnet50 --source-dataset=cifar100 --target-dataset=cifar100 --model_saving_path=<path-to-dir-where-models-are-to-be-stored> --wandb --entity=67Samuel --project=project_name --run_name=run_name
+python iterative_pruning.py --architecture=resnet50 --source-dataset=cifar100 --target-dataset=cifar100 --init_path=./ --model_saving_path=<path-to-dir-where-models-are-to-be-stored> --wandb --entity=67Samuel --project=project_name --run_name=run_name
 ```
 
 ### Using test.py
