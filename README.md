@@ -97,7 +97,7 @@ The script will run 30 pruning iterations which will prune away 99.9% of the wei
 cd Generalizing-Lottery-Ticket/src   
 
 # run iterative_pruning.py and iterative_snip.py the same way
-python iterative_pruning.py --architecture=resnet50 --source-dataset=cifar100 --target-dataset=cifar100 --init_path=./ --model_saving_path=<path-to-dir-where-models-are-to-be-stored> --wandb --entity=67Samuel --project=project_name --run_name=run_name
+python iterative_pruning.py --architecture=resnet50 --source_dataset=cifar100 --target_dataset=cifar100 --init_path=./ --model_saving_path=<path-to-dir-where-models-are-to-be-stored> --wandb --entity=67Samuel --project=project_name --run_name=run_name
 ```
 
 ### Using test.py
