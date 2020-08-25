@@ -103,7 +103,7 @@ def prune_iteratively(model, args, dataloader, device, is_equal_classes):
 		lr_anneal_epochs = [50, 65, 80]
 	elif args.architecture == "alexnet":
 		num_epochs = 500
-		lr_anneal_epochs = [450, 470-, 480, 490]
+		lr_anneal_epochs = [450, 470, 480, 490]
 	else:
 		raise ValueError(args.architecture + " architecture not supported")
 
