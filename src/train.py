@@ -102,7 +102,6 @@ def train(model, args, dataloader, device):
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
 			# call early stopper
-			early_stopper(val_loss=loss, model=model)
 			if args.wandb:
 				# log loss after each batch
 				wandb.log({'train loss':loss.item()})
@@ -120,6 +119,7 @@ def train(model, args, dataloader, device):
 		if args.wandb:
 			#log lr at each epoch
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
+		early_stopper(val_loss=loss, model=model)
 		print(f"Epoch {epoch} : Loss = {loss.item()}")
 	print("Finished Training!")
 
