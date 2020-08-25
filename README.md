@@ -78,7 +78,6 @@ python snip_train.py --architecture=resnet50 --dataset=cifar100 --snip=70 --wand
 - --architecture : To specify the neural network architecture (vgg19 and resnet50)
 - --target_dataset      : The dataset to train on (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
 - --source_dataset      : The dataset using which winning ticket initialization was found (cifar10, cifar100, fashionmnist, svhn, cifar10a, cifar10b)
-- --init_path   : Path to model with winning ticket initialization
 - --wandb       : Set to True to log results to wandb
 
 ##### Optional arguments:
