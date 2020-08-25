@@ -49,7 +49,7 @@ def permute_masks(old_masks):
 
 def prune(model, args, dataloader, device):
 	"""
-	Performs iterative pruning
+	Performs one shot pruning
 	Arguments
 	---------
 	model : the PyTorch neural network model to be trained
@@ -201,6 +201,6 @@ if __name__ == '__main__':
 
 	# for trasfer learning
 	if num_classes_source == num_classes_target:
-		prune_iteratively(model, args, dataloader, device, True)
+		prune(model, args, dataloader, device, True)
 	else:
-		prune_iteratively(model, args, dataloader, device, False)
+		prune(model, args, dataloader, device, False)
