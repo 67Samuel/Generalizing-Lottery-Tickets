@@ -133,14 +133,6 @@ def prune(model, args, dataloader, device):
 		for batch_num, data in enumerate(dataloader, 0):
 			inputs, labels = data[0].to(device), data[1].to(device)
 			optimizer.zero_grad()
-
-			if pruning_iter != 0:
-				layer_index = 0
-				for name, params in model.named_parameters():
-					if "weight" in name:
-						params.data.mul_(masks[layer_index].to(device))
-						layer_index += 1
-
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
 			if args.wandb:
@@ -154,12 +146,11 @@ def prune(model, args, dataloader, device):
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
 		if (epoch == num_epochs):
 			print('saving model...')
-			if pruning_iter != 0:
-				layer_index = 0
-				for name, params in model.named_parameters():
-					if "weight" in name:
-						params.data.mul_(masks[layer_index].to(device))
-						layer_index += 1
+			layer_index = 0
+			for name, params in model.named_parameters():
+				if "weight" in name:
+					params.data.mul_(masks[layer_index].to(device))
+					layer_index += 1
 			torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/one_shot_" + str(epoch))
 	print("Finished One Shot Pruning")
 
