@@ -108,7 +108,7 @@ python iterative_pruning.py --architecture=resnet50 --source_dataset=cifar100 --
 - --wandb       : Set to True to log results to wandb
 
 ##### Optional arguments:
-- --batch-size : To set the batch size while training
+- --batch_size : To set the batch size while training
 - --entity     : Entity (username) of wandb account (must use if wandb is True)
 - --project    : Wandb project to log results to
 - --run_name   : Run name to log to wandb
@@ -119,7 +119,7 @@ Running this script will print the _Fraction of pruned weights_ in the model and
 cd Generalizing-Lottery-Ticket/src   
 
 # run test.py
-python test.py --architecture=resnet50 --dataset=cifar10 --model-path=<path-to-model> --wandb --entity=67Samuel
+python test.py --architecture=resnet50 --dataset=cifar10 --model_path=<path-to-model> --wandb --entity=67Samuel --project=project_name --run_name=run_name
 ```
 
 ### Results   
