@@ -78,8 +78,6 @@ def prune(model, args, dataloader, device):
 
 	criterion = nn.CrossEntropyLoss().cuda()
 
-	weight_fractions = get_weight_fractions()
-	
 	if args.wandb:
 		# run wandb init
 		if args.optimizer == 'sgd':
