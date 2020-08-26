@@ -87,7 +87,7 @@ def prune(model, args, dataloader, device):
 		wandb.init(entity=args.entity, project=args.project, name=args.run_name, config={'batch size':args.batch_size, 'lr':lr, 'epochs':num_epochs})
 	
 
-	cpt = torch.load(args.models_path + f"/{args.architecture}_{num_epochs}")
+	cpt = torch.load(args.init_path + f"/{args.architecture}_{num_epochs}")
 	model.load_state_dict(cpt['model_state_dict'])
 
 	# apply mask
