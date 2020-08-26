@@ -55,6 +55,7 @@ def args_parser_iterprune():
 	parser.add_argument('--project', default='Varungohli Lottery Ticket', type=str, help='name of the wandb project (default: Varungohli Lottery Ticket)')  
 	parser.add_argument('--entity', default='name', type=str, help='wandb username (default: name)') 
 	parser.add_argument('--wandb', required=True, action='store_true', default=False, help='use wandb logging') 
+	parser.add_argument('--snip', default=50.0, type=float, help='snip percentage, 80 means 80% snip (default: 50.0)')
 	return parser
 
 
