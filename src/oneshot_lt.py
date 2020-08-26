@@ -200,7 +200,4 @@ if __name__ == '__main__':
 	model = load_model(args.architecture, num_classes_target)
 
 	# for trasfer learning
-	if num_classes_source == num_classes_target:
-		prune(model, args, dataloader, device, True)
-	else:
-		prune(model, args, dataloader, device, False)
+	prune(model, args, dataloader, device)
