@@ -109,13 +109,12 @@ def train(model, args, dataloader, device):
 			optimizer.step()
 		
 		# save model only if loss is past 0.3 to save memory
-		if loss < 0.3:
-			if (epoch%(num_epochs/10) == 0):
-				try:
-					# saved file looks like alexnet_500 etc
-					torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
-				except FileNotFoundError:
-					print(args.model_saving_path + " path not found")
+		if (epoch == num_epochs):
+			try:
+				# saved file looks like alexnet_500 etc
+				torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict()}, args.model_saving_path + f"/{args.architecture}_{epoch}")
+			except FileNotFoundError:
+				print(args.model_saving_path + " path not found")
 		if args.wandb:
 			#log lr at each epoch
 			wandb.log({'train lr':optimizer.param_groups[0]['lr']})
