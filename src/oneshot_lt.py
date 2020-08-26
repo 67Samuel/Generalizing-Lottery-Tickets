@@ -90,7 +90,7 @@ def prune(model, args, dataloader, device):
 	cpt = torch.load(args.init_path + f"/{args.architecture}_{num_epochs}")
 	model.load_state_dict(cpt['model_state_dict'])
 
-	# apply mask
+	# making mask
 	masks = []
 	flat_model_weights = np.array([])
 	for name, params in model.named_parameters():
@@ -133,6 +133,14 @@ def prune(model, args, dataloader, device):
 		for batch_num, data in enumerate(dataloader, 0):
 			inputs, labels = data[0].to(device), data[1].to(device)
 			optimizer.zero_grad()
+			
+			#apply mask
+			layer_index = 0
+			for name, params in model.named_parameters():
+				if "weight" in name:
+					params.data.mul_(masks[layer_index].to(device))
+					layer_index += 1
+			
 			outputs = model(inputs)
 			loss = criterion(outputs, labels)
 			if args.wandb:
