@@ -159,7 +159,7 @@ def prune(model, args, dataloader, device):
 				if "weight" in name:
 					params.data.mul_(masks[layer_index].to(device))
 					layer_index += 1
-			torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/one_shot_" + str(epoch))
+			torch.save({'epoch': epoch,'model_state_dict': model.state_dict(),'optimizer_state_dict': optimizer.state_dict() },args.model_saving_path + "/one_shot_" + args.save_name)
 	print("Finished One Shot Pruning")
 
 if __name__ == '__main__':
