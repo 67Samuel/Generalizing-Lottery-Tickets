@@ -80,7 +80,7 @@ def train(model, args, dataloader, device):
 			wandb.log({'epochs':epoch})
 		
 		# if loss becomes too low due to early stopper patience running out too many times, stop training
-		if original_lr > (optimizer.param_groups[0]['lr'])*(10*len(lr_anneal_epochs)+100):
+		if original_lr > (optimizer.param_groups[0]['lr'])*(10*len(lr_anneal_epochs)+10000):
 			print(f"loss is too low at {optimizer.param_groups[0]['lr']}")
 			break
 		
