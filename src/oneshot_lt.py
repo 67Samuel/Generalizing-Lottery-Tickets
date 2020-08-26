@@ -97,7 +97,7 @@ def prune(model, args, dataloader, device):
 		if "weight" in name:
 			layer_weights = params.data.cpu().numpy()
 			flat_model_weights = np.concatenate((flat_model_weights, layer_weights.flatten()))
-	threshold = np.percentile(abs(flat_model_weights), args.snip)
+	threshold = np.percentile(abs(flat_model_weights), args.prune)
 
 	zeros = 0
 	total = 0
