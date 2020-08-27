@@ -79,22 +79,22 @@ def train(model, args, dataloader, device):
 			# log each epoch
 			wandb.log({'epochs':epoch})
 		
-		# if loss becomes too low due to early stopper patience running out too many times, stop training
-		if original_lr > (optimizer.param_groups[0]['lr'])*(10*len(lr_anneal_epochs)+10000):
-			print(f"loss is too low at {optimizer.param_groups[0]['lr']}")
+		# if lr becomes too low due to early stopper patience running out too many times, stop training
+		if original_lr > (optimizer.param_groups[0]['lr'])*(10*len(lr_anneal_epochs)+1000000):
+			print(f"lr is too low at {optimizer.param_groups[0]['lr']}")
 			break
 		
 		if epoch in lr_anneal_epochs:
 			# decrease lr after previously set epochs
 			optimizer.param_groups[0]['lr'] /= 10
 		
-		if (early_stopper.early_stop == True):
+		#if (early_stopper.early_stop == True):
 			# if there are still more lr milestones that haven't come, derease lr and continue. If all lr milestones have been completed, stop the training
-			if all(num < epoch for num in lr_anneal_epochs):
-				print(f"epoch {epoch} > {lr_anneal_epochs[-1]} and early stopping is true. Stopping training...")
-				break
-			else:
-				optimizer.param_groups[0]['lr'] /= 2
+			#if all(num < epoch for num in lr_anneal_epochs):
+				#print(f"epoch {epoch} > {lr_anneal_epochs[-1]} and early stopping is true. Stopping training...")
+				#break
+			#else:
+				#optimizer.param_groups[0]['lr'] /= 2
 
 		for batch_num, data in enumerate(dataloader, 0):
 			inputs, labels = data[0].to(device), data[1].to(device)
