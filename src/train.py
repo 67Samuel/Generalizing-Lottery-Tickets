@@ -104,7 +104,10 @@ def train(model, args, dataloader, device):
 			# call early stopper
 			if args.wandb:
 				# log loss after each batch
-				wandb.log({'train loss':loss.item()})
+				try:
+					wandb.log({'train loss':loss.item()})
+				except Exception as e:
+					print(e)
 			loss.backward()
 			optimizer.step()
 		
