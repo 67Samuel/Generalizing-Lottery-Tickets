@@ -245,5 +245,8 @@ if __name__ == '__main__':
 
 	#Loads model
 	model = load_model(args.architecture, num_classes)
+	if args.init_path != None:
+		cpt = torch.load(args.init_path)
+		model.load_state_dict(cpt['model_state_dict'])
 
 	train(model, args, img_size, dataloader, device)
