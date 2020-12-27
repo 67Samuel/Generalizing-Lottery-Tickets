@@ -61,7 +61,7 @@ To support more datasets and architectures, we need to add necessary code to uti
 - --project    : Wandb project to log results to
 - --run_name   : Run name to log to wandb
 
-Models will be saved after loss decreases below 0.3, in intervals of num_epochs/10. VGG19 will be saved for every 16<sup>th</sup> epoch. FOr Resnet50, the model will be saved for every 9<sup>th</sup> epoch. For our experiments, while pruning, we reinitialize the model with weights after epoch 2 (late resetting of 1).
+Models will be saved after loss decreases below 0.3, in intervals of num_epochs/10. VGG19 will be saved for every 16<sup>th</sup> epoch. For Resnet50, the model will be saved for every 9<sup>th</sup> epoch. For our experiments, while pruning, we reinitialize the model with weights after epoch 2 (late resetting of 1).
 ```bash
 # source folder
 cd Generalizing-Lottery-Ticket/src   
@@ -121,6 +121,7 @@ cd Generalizing-Lottery-Ticket/src
 # run test.py
 python test.py --architecture=resnet50 --dataset=cifar10 --model_path=<path-to-model> --wandb --entity=67Samuel --project=project_name --run_name=run_name
 ```
+## Below are unedited from the original repo
 
 ### Results   
 The results of the replicated experiments can be found in plots folder.
